@@ -17,7 +17,7 @@
         android:layout_height="wrap_content"
         android:textColor="@color/text_primary"
         android:textSize="@dimen/text_size_medium"
-        android:typeface="monospace"
+        android:fontFamily="sans-serif"
         android:textStyle="bold"
         tools:text="101" />
 
@@ -46,6 +46,7 @@
         android:layout_height="@dimen/channel_logo_size"
         android:layout_marginStart="8dp"
         android:scaleType="centerInside"
+        android:contentDescription="@null"
         tools:src="@drawable/ic_placeholder_logo" />
 
 </LinearLayout>

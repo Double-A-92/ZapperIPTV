@@ -5,6 +5,7 @@ import com.zapperiptv.network.PlaylistDownloader
 import com.zapperiptv.parser.M3uParser
 import com.zapperiptv.repository.PlaylistRepository
 import com.zapperiptv.storage.PreferencesManager
+import com.zapperiptv.ui.ImageLoader
 import com.zapperiptv.viewmodel.MainViewModelFactory
 
 class ZapperApp : Application() {
@@ -17,7 +18,8 @@ class ZapperApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        
+        ImageLoader.init(cacheDir)   // uses internal cache
+
         // Manual dependency injection
         preferencesManager = PreferencesManager(this)
         playlistDownloader = PlaylistDownloader(this)

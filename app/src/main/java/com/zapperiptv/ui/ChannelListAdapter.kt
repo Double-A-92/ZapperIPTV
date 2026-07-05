@@ -1,8 +1,8 @@
 package com.zapperiptv.ui
 
-import android.graphics.Color
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
@@ -30,7 +30,7 @@ class ChannelListAdapter(
 
     override fun onBindViewHolder(holder: ChannelViewHolder, position: Int) {
         val channel = getItem(position)
-        holder.bind(channel, position)
+        holder.bind(channel)
     }
 
     inner class ChannelViewHolder(private val binding: ItemChannelBinding) : RecyclerView.ViewHolder(binding.root) {
@@ -41,29 +41,29 @@ class ChannelListAdapter(
                     onChannelSelected(position)
                 }
             }
-            
-            // Handle focus scaling for Android TV
+
+            // Handle focus scaling for Android TV with animation cancellation
             binding.root.setOnFocusChangeListener { view, hasFocus ->
-                if (hasFocus) {
-                    view.animate().scaleX(1.05f).scaleY(1.05f).setDuration(150).start()
-                } else {
-                    view.animate().scaleX(1f).scaleY(1f).setDuration(150).start()
-                }
+                val scale = if (hasFocus) 1.04f else 1f
+                view.animate()
+                    .scaleX(scale)
+                    .scaleY(scale)
+                    .setDuration(150)
+                    .start()
             }
         }
 
-        fun bind(channel: Channel, position: Int) {
+        fun bind(channel: Channel) {
             binding.channelName.text = channel.name
             binding.channelNumber.text = channel.displayNumber.toString()
 
-            // Assign a consistent color to each sourceId
-            if (!sourceColorMap.containsKey(channel.sourceId)) {
+            // Assign a consistent color to each sourceId efficiently
+            val color = sourceColorMap.getOrPut(channel.sourceId) {
                 val colorRes = indicatorColors[sourceColorMap.size % indicatorColors.size]
-                sourceColorMap[channel.sourceId] = binding.root.context.getColor(colorRes)
+                ContextCompat.getColor(binding.root.context, colorRes)
             }
-            binding.playlistIndicator.setBackgroundColor(sourceColorMap[channel.sourceId] ?: Color.GRAY)
-
             ImageLoader.load(channel.logoUrl, binding.channelLogo, R.drawable.ic_placeholder_logo)
+            binding.playlistIndicator.setBackgroundColor(color)
         }
     }
 

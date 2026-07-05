@@ -27,13 +27,15 @@ import com.zapperiptv.model.PlaybackState
 import com.zapperiptv.ui.ChannelListAdapter
 import com.zapperiptv.ui.SettingsDialogFragment
 import com.zapperiptv.viewmodel.MainViewModel
+import androidx.recyclerview.widget.RecyclerView
+import com.zapperiptv.ui.ImageLoader
 
 @androidx.media3.common.util.UnstableApi
 class PlayerActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityPlayerBinding
     private var exoPlayer: ExoPlayer? = null
-    
+
     private lateinit var dataSourceFactory: DataSource.Factory
     private lateinit var extractorsFactory: DefaultExtractorsFactory
 
@@ -81,7 +83,7 @@ class PlayerActivity : AppCompatActivity() {
                     supportFragmentManager.findFragmentByTag("Settings") != null) {
                     return false
                 }
-                
+
                 // Show/hide playback overlay (channel name, number, status)
                 viewModel.toggleOverlay()
                 return true
@@ -89,7 +91,7 @@ class PlayerActivity : AppCompatActivity() {
 
             override fun onLongPress(e: MotionEvent) {
                 // Long press to open settings directly
-                if (!binding.channelListContainer.isVisible && 
+                if (!binding.channelListContainer.isVisible &&
                     supportFragmentManager.findFragmentByTag("Settings") == null) {
                     showSettings()
                 }
@@ -153,10 +155,41 @@ class PlayerActivity : AppCompatActivity() {
             viewModel.selectChannel(position)
             viewModel.setChannelListVisible(false)
         }
+
         binding.channelRecyclerView.apply {
-            layoutManager = LinearLayoutManager(this@PlayerActivity)
+            // 1. Layout manager with aggressive pre-fetching
+            layoutManager = LinearLayoutManager(this@PlayerActivity).apply {
+                initialPrefetchItemCount = 20          // build 20 items ahead
+                isItemPrefetchEnabled = true
+            }
+
+            // 2. Adapter
             adapter = channelListAdapter
+
+            // 3. Fixed size – the RecyclerView’s height is fixed (not wrap_content)
+            setHasFixedSize(true)
+
+            // 4. View cache – keep a reasonable number of off-screen views
+            setItemViewCacheSize(20)
+            recycledViewPool.setMaxRecycledViews(0, 20)   // limit recycled pool
+
+            // 5. Disable default item animator to avoid fade-in overhead on initial load
+            itemAnimator = null
         }
+
+        // 6. Pause image loading while flinging, resume only when the list stops
+        binding.channelRecyclerView.addOnScrollListener(object : RecyclerView.OnScrollListener() {
+            override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
+                when (newState) {
+                    RecyclerView.SCROLL_STATE_DRAGGING,
+                    RecyclerView.SCROLL_STATE_SETTLING -> ImageLoader.pause()
+                    RecyclerView.SCROLL_STATE_IDLE -> {
+                        // Only resume if we were actually paused (idempotent call)
+                        ImageLoader.resume()
+                    }
+                }
+            }
+        })
     }
 
     private fun observeViewModel() {
@@ -170,7 +203,7 @@ class PlayerActivity : AppCompatActivity() {
                 playStream(channel.streamUrl)
                 binding.overlayChannelName.text = channel.name
                 binding.overlayChannelNumber.text = channel.displayNumber.toString()
-                
+
                 val playlists = viewModel.playlists.value ?: emptyList()
                 val sourcePlaylist = playlists.find { it.id == channel.sourceId }
                 binding.overlayPlaylistName.text = sourcePlaylist?.name ?: ""
@@ -231,14 +264,14 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun playStream(url: String) {
         initializePlayerIfNeeded()
-        
+
         Log.d(TAG, "Playing stream: $url")
         viewModel.setPlaybackState(PlaybackState.Loading)
-        
+
         // Handle common IPTV URL pipe suffix for headers (e.g., "|User-Agent=VLC")
         var cleanUrl = url
         val extraHeaders = mutableMapOf<String, String>()
-        
+
         if (url.contains("|")) {
             val parts = url.split("|")
             cleanUrl = parts[0]
@@ -250,21 +283,21 @@ class PlayerActivity : AppCompatActivity() {
                 }
             }
         }
-        
+
         val mediaItemBuilder = MediaItem.Builder().setUri(cleanUrl)
-        
+
         // Apply extra headers if present (Media3 1.2.0+)
         if (extraHeaders.isNotEmpty()) {
             // Some versions use setHttpRequestHeaders, others might need a custom data source.
             // For now, we at least clean the URL which is essential.
             Log.d(TAG, "Extra headers: $extraHeaders")
         }
-        
-        // IPTV streams are often HLS, DASH, or TS. 
+
+        // IPTV streams are often HLS, DASH, or TS.
         // Hinting at the content type helps ExoPlayer select the right extractor/factory.
         val lowerUrl = cleanUrl.lowercase()
         when {
-            lowerUrl.contains(".m3u8") || lowerUrl.contains("m3u8") || 
+            lowerUrl.contains(".m3u8") || lowerUrl.contains("m3u8") ||
             lowerUrl.contains("/hls/") || lowerUrl.contains("stvp-") ||
             lowerUrl.contains("playlist") || lowerUrl.contains(".m3u") -> {
                 mediaItemBuilder.setMimeType(MimeTypes.APPLICATION_M3U8)
@@ -272,8 +305,8 @@ class PlayerActivity : AppCompatActivity() {
             lowerUrl.contains(".mpd") || lowerUrl.contains("dash") -> {
                 mediaItemBuilder.setMimeType(MimeTypes.APPLICATION_MPD)
             }
-            lowerUrl.contains(".ts") || lowerUrl.contains("format=ts") || 
-            lowerUrl.contains("output=ts") || lowerUrl.contains("mpegts") || 
+            lowerUrl.contains(".ts") || lowerUrl.contains("format=ts") ||
+            lowerUrl.contains("output=ts") || lowerUrl.contains("mpegts") ||
             lowerUrl.contains(":25461") || lowerUrl.contains("/live/") -> {
                 // Some providers use specific ports or keywords for TS streams
                 mediaItemBuilder.setMimeType(MimeTypes.VIDEO_MP2T)
@@ -282,10 +315,10 @@ class PlayerActivity : AppCompatActivity() {
                 mediaItemBuilder.setMimeType(MimeTypes.APPLICATION_RTSP)
             }
         }
-        
+
         exoPlayer?.let { player ->
             val mediaItem = mediaItemBuilder.build()
-            
+
             // Explicitly create the correct MediaSource based on MIME type.
             // This is more robust for IPTV than relying on DefaultMediaSourceFactory.
             val mediaSource = when (mediaItem.localConfiguration?.mimeType) {
@@ -307,7 +340,7 @@ class PlayerActivity : AppCompatActivity() {
                         .createMediaSource(mediaItem)
                 }
             }
-            
+
             player.setMediaSource(mediaSource)
             player.prepare()
             player.play()
@@ -324,13 +357,13 @@ class PlayerActivity : AppCompatActivity() {
         if (exoPlayer == null) {
             // Use a common browser User-Agent as many IPTV providers block the default ExoPlayer one.
             val userAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
-            
+
             val defaultRequestProperties = mutableMapOf<String, String>()
             defaultRequestProperties["User-Agent"] = userAgent
             defaultRequestProperties["Accept"] = "*/*"
             defaultRequestProperties["Accept-Language"] = "en-US,en;q=0.9"
             defaultRequestProperties["Connection"] = "keep-alive"
-            
+
             dataSourceFactory = DefaultHttpDataSource.Factory()
                 .setUserAgent(userAgent)
                 .setDefaultRequestProperties(defaultRequestProperties)
@@ -399,7 +432,7 @@ class PlayerActivity : AppCompatActivity() {
     override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
         // If menus are open, let system handle navigation (focus)
         if (binding.channelListContainer.isVisible || supportFragmentManager.findFragmentByTag("Settings") != null) {
-            
+
             // Allow BACK to close channel list
             if (keyCode == KeyEvent.KEYCODE_BACK && binding.channelListContainer.isVisible) {
                 viewModel.setChannelListVisible(false)
@@ -410,7 +443,7 @@ class PlayerActivity : AppCompatActivity() {
                 viewModel.setChannelListVisible(false)
                 return true
             }
-            
+
             return super.onKeyDown(keyCode, event)
         }
 
@@ -451,7 +484,7 @@ class PlayerActivity : AppCompatActivity() {
             else -> super.onKeyDown(keyCode, event)
         }
     }
-    
+
     private fun showSettings() {
         Log.d(TAG, "showSettings() called")
         try {
