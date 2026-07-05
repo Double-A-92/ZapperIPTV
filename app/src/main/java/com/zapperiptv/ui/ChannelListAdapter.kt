@@ -55,7 +55,6 @@ class ChannelListAdapter(
 
         fun bind(channel: Channel) {
             binding.channelName.text = channel.name
-            binding.channelNumber.text = channel.displayNumber.toString()
 
             // Assign a consistent color to each sourceId efficiently
             val color = sourceColorMap.getOrPut(channel.sourceId) {
@@ -63,7 +62,7 @@ class ChannelListAdapter(
                 ContextCompat.getColor(binding.root.context, colorRes)
             }
             ImageLoader.load(channel.logoUrl, binding.channelLogo, R.drawable.ic_placeholder_logo)
-            binding.playlistIndicator.setBackgroundColor(color)
+            binding.playlistIndicator.setTextColor(color)
         }
     }
 
