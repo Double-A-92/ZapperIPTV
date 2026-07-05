@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="#FF1A1A1A"
+    android:padding="20dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Settings - Playlists"
+        android:textSize="24sp"
+        android:textColor="#FFFFFFFF"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="16dp">
+        
+        <Button
+            android:id="@+id/btn_add_url"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Add URL"
+            android:textAllCaps="false"
+            android:textColor="@android:color/black"
+            android:backgroundTint="@color/accent_cyan"
+            android:layout_marginEnd="8dp" />
+
+        <Button
+            android:id="@+id/btn_add_local"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Add Local"
+            android:textAllCaps="false"
+            android:textColor="@android:color/black"
+            android:backgroundTint="@color/accent_cyan"
+            android:layout_marginEnd="8dp" />
+
+        <Button
+            android:id="@+id/btn_reload"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Reload"
+            android:textAllCaps="false"
+            android:textColor="@android:color/black"
+            android:backgroundTint="@color/accent_amber" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/empty_playlists_message"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:text="No playlists added yet.\nTap 'Add URL' or 'Add Local' to get started."
+        android:textColor="#FFB0B0B0"
+        android:textSize="14sp"
+        android:visibility="gone"
+        android:layout_marginVertical="16dp" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/playlist_recycler_view"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:clipToPadding="false"
+        android:padding="4dp" />
+
+</LinearLayout>

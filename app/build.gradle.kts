@@ -1,0 +1,80 @@
+plugins {
+  alias(libs.plugins.android.application)
+}
+
+android {
+    namespace = "com.zapperiptv"
+    compileSdk = 36
+    defaultConfig {
+        applicationId = "com.zapperiptv"
+        minSdk = 21
+        targetSdk = 35
+        versionCode = 1
+        versionName = "1.0"
+    }
+
+    buildTypes {
+        release {
+            isMinifyEnabled = false
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+        }
+    }
+    compileOptions {
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
+    }
+    buildFeatures {
+      viewBinding = true
+      buildConfig = false
+      shaders = false
+    }
+
+    packaging {
+      resources {
+        excludes += "/META-INF/{AL2.0,LGPL2.1}"
+      }
+    }
+}
+
+kotlin {
+    jvmToolchain(17)
+}
+
+dependencies {
+  // Core Android dependencies
+  implementation(libs.androidx.core.ktx)
+  implementation(libs.androidx.appcompat)
+  implementation(libs.androidx.fragment.ktx)
+  implementation(libs.androidx.activity)
+
+  // Arch Components
+  implementation(libs.androidx.lifecycle.viewmodel.ktx)
+  implementation(libs.androidx.lifecycle.livedata.ktx)
+  implementation(libs.androidx.lifecycle.runtime.ktx)
+
+  // UI
+  implementation(libs.androidx.leanback)
+  implementation(libs.androidx.recyclerview)
+
+  // Media3 (ExoPlayer)
+  implementation(libs.androidx.media3.exoplayer)
+  implementation(libs.androidx.media3.ui)
+  implementation(libs.androidx.media3.session)
+  implementation(libs.androidx.media3.exoplayer.hls)
+  implementation(libs.androidx.media3.exoplayer.dash)
+  implementation(libs.androidx.media3.exoplayer.rtsp)
+
+  // JSON / Data
+  implementation(libs.gson)
+  implementation(libs.kotlinx.coroutines.android)
+
+  // Local tests: jUnit, coroutines, Android runner
+  testImplementation(libs.junit)
+  testImplementation(libs.kotlinx.coroutines.test)
+
+  // Instrumented tests: jUnit rules and runners
+  androidTestImplementation(libs.androidx.test.core)
+  androidTestImplementation(libs.androidx.test.ext.junit)
+  androidTestImplementation(libs.androidx.test.runner)
+  androidTestImplementation(libs.androidx.test.espresso.core)
+}

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:padding="16dp"
+    android:layout_marginVertical="4dp"
+    android:background="@drawable/bg_channel_item"
+    android:focusable="true">
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:orientation="vertical">
+
+        <TextView
+            android:id="@+id/playlist_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/text_primary"
+            android:textSize="@dimen/text_size_medium"
+            android:textStyle="bold"
+            tools:text="UK Channels" />
+
+        <TextView
+            android:id="@+id/playlist_url"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/text_secondary"
+            android:textSize="@dimen/text_size_small"
+            android:ellipsize="end"
+            android:singleLine="true"
+            tools:text="http://example.com/playlist.m3u" />
+            
+        <TextView
+            android:id="@+id/playlist_status"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="@color/accent_amber"
+            android:textSize="@dimen/text_size_small"
+            tools:text="Last updated: 10 mins ago" />
+    </LinearLayout>
+
+    <Switch
+        android:id="@+id/playlist_enabled"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="16dp"
+        android:focusable="true" />
+
+    <Button
+        android:id="@+id/btn_delete"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Delete"
+        android:focusable="true" />
+
+</LinearLayout>

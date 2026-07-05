@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="background_primary">#FF0A0A0A</color>
+    <color name="background_secondary">#FF1A1A1A</color>
+    <color name="background_overlay">#CC000000</color>
+    <color name="text_primary">#FFFFFFFF</color>
+    <color name="text_secondary">#FFB0B0B0</color>
+    <color name="accent_cyan">#FF00E5FF</color>
+    <color name="accent_amber">#FFFFAB00</color>
+    <color name="error_red">#FFFF1744</color>
+    <color name="channel_indicator_1">#FF00E5FF</color>
+    <color name="channel_indicator_2">#FFFF6D00</color>
+    <color name="channel_indicator_3">#FF76FF03</color>
+    <color name="channel_indicator_4">#FFE040FB</color>
+</resources>

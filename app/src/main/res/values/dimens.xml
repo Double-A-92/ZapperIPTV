@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="text_size_large">32sp</dimen>
+    <dimen name="text_size_medium">20sp</dimen>
+    <dimen name="text_size_small">14sp</dimen>
+    
+    <dimen name="channel_item_height">64dp</dimen>
+    <dimen name="channel_logo_size">48dp</dimen>
+    <dimen name="overlay_padding">32dp</dimen>
+    
+    <dimen name="channel_number_width">80dp</dimen>
+</resources>
