@@ -180,6 +180,9 @@ class PlayerActivity : AppCompatActivity() {
         }
 
         viewModel.playbackState.observe(this) { state ->
+            // Keep screen on during playback or loading
+            binding.playerView.keepScreenOn = state is PlaybackState.Playing || state is PlaybackState.Loading
+
             when (state) {
                 is PlaybackState.Loading -> binding.overlayStatus.text = "Loading..."
                 is PlaybackState.Playing -> binding.overlayStatus.text = ""
