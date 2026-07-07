@@ -59,7 +59,6 @@ dependencies {
     implementation(libs.androidx.lifecycle.runtime.ktx)
 
     // UI
-    implementation(libs.androidx.leanback)
     implementation(libs.androidx.recyclerview)
 
     // Media3 (ExoPlayer)
@@ -74,15 +73,6 @@ dependencies {
     implementation(libs.gson)
     implementation(libs.kotlinx.coroutines.android)
 
-    // Local tests: jUnit, coroutines, Android runner
-    testImplementation(libs.junit)
-    testImplementation(libs.kotlinx.coroutines.test)
-
-    // Instrumented tests: jUnit rules and runners
-    androidTestImplementation(libs.androidx.test.core)
-    androidTestImplementation(libs.androidx.test.ext.junit)
-    androidTestImplementation(libs.androidx.test.runner)
-    androidTestImplementation(libs.androidx.test.espresso.core)
     detektPlugins(libs.detektFormatting)
 }
 

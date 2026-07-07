@@ -14,10 +14,6 @@
 -keep class androidx.media3.** { *; }
 -dontwarn androidx.media3.**
 
-# Keep AndroidX Leanback (Android TV)
--keep class androidx.leanback.** { *; }
--dontwarn androidx.leanback.**
-
 # Keep ViewBinding generated classes
 -keep class com.zapperiptv.databinding.** { *; }
 

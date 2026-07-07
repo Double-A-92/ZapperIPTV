@@ -38,9 +38,6 @@ class MainViewModel(
     private val _playbackState = MutableLiveData<PlaybackState>(PlaybackState.Idle)
     val playbackState: LiveData<PlaybackState> = _playbackState
 
-    private val _isLoading = MutableLiveData<Boolean>(false)
-    val isLoading: LiveData<Boolean> = _isLoading
-
     private val _errorMessage = MutableLiveData<Int?>(null)
     val errorMessage: LiveData<Int?> = _errorMessage
 
@@ -67,13 +64,11 @@ class MainViewModel(
     }
 
     fun loadPlaylists(forceReload: Boolean = false) {
-        _isLoading.value = true
         _errorMessage.value = null
         viewModelScope.launch {
             _playlists.value = repository.getPlaylists()
             val loadedChannels = repository.loadChannels(forceReload)
             _channels.value = loadedChannels
-            _isLoading.value = false
 
             if (loadedChannels.isEmpty()) {
                 _currentChannel.value = null
@@ -211,10 +206,6 @@ class MainViewModel(
         _showOverlay.value = true
         handler.removeCallbacks(hideOverlayRunnable)
         handler.postDelayed(hideOverlayRunnable, OVERLAY_DELAY_MS)
-    }
-
-    fun toggleChannelList() {
-        _showChannelList.value = _showChannelList.value != true
     }
 
     fun setChannelListVisible(visible: Boolean) {
