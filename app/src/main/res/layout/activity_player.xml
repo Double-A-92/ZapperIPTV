@@ -17,7 +17,7 @@
         android:id="@+id/welcome_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:background="@color/background_primary"
+        android:background="@android:color/black"
         android:visibility="gone">
 
         <LinearLayout
@@ -27,22 +27,34 @@
             android:orientation="vertical"
             android:gravity="center">
 
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/welcome_message"
-                android:textSize="@dimen/text_size_large"
-                android:textColor="@color/text_primary"
-                android:textStyle="bold" />
+            <FrameLayout
+                android:layout_width="220dp"
+                android:layout_height="220dp"
+                android:layout_marginBottom="48dp">
+                <ImageView
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/ic_dpad_outer"
+                    android:alpha="0.5"
+                    android:contentDescription="@null" />
+                <ImageView
+                    android:id="@+id/welcome_dpad_inner"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:src="@drawable/ic_dpad_inner"
+                    android:alpha="0.9"
+                    android:contentDescription="@null" />
+            </FrameLayout>
 
             <TextView
                 android:id="@+id/welcome_instruction_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
                 android:text="@string/welcome_instruction"
-                android:textSize="@dimen/text_size_medium"
-                android:textColor="@color/text_secondary" />
+                android:textSize="24sp"
+                android:textColor="#FF707070"
+                android:letterSpacing="0.03"
+                android:gravity="center" />
         </LinearLayout>
     </FrameLayout>
 

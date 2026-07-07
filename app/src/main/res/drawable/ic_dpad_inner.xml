@@ -1,0 +1,10 @@
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="200dp"
+    android:height="200dp"
+    android:viewportWidth="200"
+    android:viewportHeight="200">
+    <!-- The Center Button - Higher contrast fill -->
+    <path
+        android:fillColor="#80FFFFFF"
+        android:pathData="M100,65 A35,35 0 1,0 100,135 A35,35 0 1,0 100,65 Z" />
+</vector>

@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">ZapperIPTV</string>
-    <string name="welcome_message">Welcome to ZapperIPTV</string>
-    <string name="welcome_instruction">Press LEFT to open Settings and add a playlist.</string>
+    <string name="welcome_message">ZapperIPTV</string>
+    <string name="welcome_instruction">Long-press [OK] to add a playlist</string>
     <string name="no_channels_available">No channels available.</string>
     <string name="check_playlist_configuration">Please check your playlist configuration in Settings.</string>
     <string name="settings">Settings</string>

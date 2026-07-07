@@ -60,14 +60,14 @@ class PlayerActivity : AppCompatActivity() {
             context = this,
             onSwipeUp = { if (!isMenuVisible()) viewModel.channelUp() },
             onSwipeDown = { if (!isMenuVisible()) viewModel.channelDown() },
-            onSwipeLeft = { if (!isMenuVisible()) viewModel.setChannelListVisible(true) },
+            onSwipeLeft = { if (!isMenuVisible() && hasChannels()) viewModel.setChannelListVisible(true) },
             onSwipeRight = {
                 if (binding.channelListContainer.isVisible) {
                     viewModel.setChannelListVisible(false)
                 }
             },
             onSingleTap = {
-                if (!isMenuVisible()) {
+                if (!isMenuVisible() && hasChannels()) {
                     viewModel.setChannelListVisible(true)
                 }
             },
@@ -76,6 +76,8 @@ class PlayerActivity : AppCompatActivity() {
             }
         )
     }
+
+    private fun hasChannels(): Boolean = viewModel.channels.value?.isNotEmpty() == true
 
     private fun isMenuVisible(): Boolean =
         binding.channelListContainer.isVisible ||
@@ -164,6 +166,9 @@ class PlayerActivity : AppCompatActivity() {
             } else {
                 getString(R.string.check_playlist_configuration)
             }
+            startWelcomeAnimation()
+        } else {
+            stopWelcomeAnimation()
         }
     }
 
@@ -293,7 +298,7 @@ class PlayerActivity : AppCompatActivity() {
                     return true
                 }
                 KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> {
-                    if (!isMenuVisible()) {
+                    if (!isMenuVisible() && hasChannels()) {
                         viewModel.setChannelListVisible(true)
                         return true
                     }
@@ -320,5 +325,35 @@ class PlayerActivity : AppCompatActivity() {
         } catch (e: IllegalStateException) {
             Log.e(TAG, "Error showing settings", e)
         }
+    }
+
+    private fun startWelcomeAnimation() {
+        binding.welcomeDpadInner.apply {
+            animate().cancel()
+            alpha = 0.9f
+            scaleX = 1.0f
+            scaleY = 1.0f
+
+            animate()
+                .scaleX(0.8f)
+                .scaleY(0.8f)
+                .alpha(1.0f)
+                .setDuration(1200) // Slower, more deliberate press
+                .withEndAction {
+                    animate()
+                        .scaleX(1.0f)
+                        .scaleY(1.0f)
+                        .alpha(0.9f)
+                        .setDuration(600)
+                        .setStartDelay(400) // Longer pause at the bottom
+                        .withEndAction { if (binding.welcomeContainer.isVisible) startWelcomeAnimation() }
+                        .start()
+                }
+                .start()
+        }
+    }
+
+    private fun stopWelcomeAnimation() {
+        binding.welcomeDpadInner.animate().cancel()
     }
 }
