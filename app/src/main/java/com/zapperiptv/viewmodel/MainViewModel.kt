@@ -16,9 +16,8 @@ import kotlinx.coroutines.launch
 
 class MainViewModel(
     private val repository: PlaylistRepository,
-    private val preferencesManager: PreferencesManager
+    private val preferencesManager: PreferencesManager,
 ) : ViewModel() {
-
     companion object {
         private const val TAG = "MainViewModel"
         private const val DEBOUNCE_DELAY_MS = 300L
@@ -54,13 +53,11 @@ class MainViewModel(
     val playlists: LiveData<List<Playlist>> = _playlists
 
     private val handler = Handler(Looper.getMainLooper())
-    
-    // Runnables for debouncing and delays
+
     private val playChannelRunnable = Runnable { executePlayChannel() }
     private val hideOverlayRunnable = Runnable { _showOverlay.value = false }
     private val errorRecoveryRunnable = Runnable { attemptErrorRecovery() }
 
-    // Error recovery state
     private val attemptedIndicesInCycle = mutableSetOf<Int>()
     private var isRecovering = false
 
@@ -80,9 +77,6 @@ class MainViewModel(
             if (loadedChannels.isEmpty()) {
                 _currentChannel.value = null
                 _currentIndex.value = -1
-                if (_playlists.value.isNullOrEmpty()) {
-                    // Handled in activity (no playlists)
-                }
             } else if (_currentIndex.value == -1) {
                 restoreLastChannel(loadedChannels)
             }
@@ -99,42 +93,30 @@ class MainViewModel(
                 return
             }
         }
-        // Fallback to first channel
         setIndexAndPlay(0)
     }
 
     fun channelUp() {
         val list = _channels.value ?: return
         if (list.isEmpty()) return
-        
         cancelErrorRecovery()
-        
-        val newIndex = if ((_currentIndex.value ?: 0) < list.size - 1) {
-            (_currentIndex.value ?: 0) + 1
-        } else {
-            0
-        }
+        val current = _currentIndex.value ?: 0
+        val newIndex = if (current < list.size - 1) current + 1 else 0
         setIndexDebounced(newIndex)
     }
 
     fun channelDown() {
         val list = _channels.value ?: return
         if (list.isEmpty()) return
-        
         cancelErrorRecovery()
-
-        val newIndex = if ((_currentIndex.value ?: 0) > 0) {
-            (_currentIndex.value ?: 0) - 1
-        } else {
-            list.size - 1
-        }
+        val current = _currentIndex.value ?: 0
+        val newIndex = if (current > 0) current - 1 else list.size - 1
         setIndexDebounced(newIndex)
     }
 
     fun selectChannel(index: Int) {
         val list = _channels.value ?: return
         if (list.isEmpty() || index < 0 || index >= list.size) return
-        
         cancelErrorRecovery()
         setIndexAndPlay(index)
     }
@@ -143,7 +125,6 @@ class MainViewModel(
         _currentIndex.value = index
         _currentChannel.value = _channels.value?.getOrNull(index)
         showOverlayTemporarily()
-        
         handler.removeCallbacks(playChannelRunnable)
         handler.postDelayed(playChannelRunnable, DEBOUNCE_DELAY_MS)
     }
@@ -152,7 +133,6 @@ class MainViewModel(
         _currentIndex.value = index
         _currentChannel.value = _channels.value?.getOrNull(index)
         showOverlayTemporarily()
-        
         handler.removeCallbacks(playChannelRunnable)
         executePlayChannel()
     }
@@ -161,10 +141,6 @@ class MainViewModel(
         val channel = _currentChannel.value ?: return
         Log.d(TAG, "Requesting playback for: ${channel.name}")
         preferencesManager.saveLastChannel(channel.sourceId, channel.streamUrl)
-        
-        // Activity observes currentChannel to actually pass URL to ExoPlayer
-        // Activity will then update playbackState
-        
         attemptedIndicesInCycle.clear()
         attemptedIndicesInCycle.add(_currentIndex.value ?: 0)
     }
@@ -174,12 +150,10 @@ class MainViewModel(
         when (state) {
             is PlaybackState.Error -> {
                 Log.e(TAG, "Playback error: ${state.message}")
-                showOverlayTemporarily() // To show the error message
+                showOverlayTemporarily()
                 startErrorRecovery()
             }
-            PlaybackState.Playing -> {
-                cancelErrorRecovery()
-            }
+            PlaybackState.Playing -> cancelErrorRecovery()
             else -> {}
         }
     }
@@ -194,27 +168,27 @@ class MainViewModel(
         val list = _channels.value ?: return
         if (list.isEmpty()) {
             isRecovering = false
-            return
-        }
-
-        var nextIndex = (_currentIndex.value ?: 0) + 1
-        if (nextIndex >= list.size) nextIndex = 0
-
-        while (attemptedIndicesInCycle.contains(nextIndex)) {
-            nextIndex++
-            if (nextIndex >= list.size) nextIndex = 0
-            
-            // Checked all channels
-            if (nextIndex == (_currentIndex.value ?: 0)) {
+        } else {
+            val nextIndex = findNextAvailableIndex(list)
+            if (nextIndex != -1) {
+                Log.d(TAG, "Auto-advancing to next channel for error recovery: index $nextIndex")
+                setIndexAndPlay(nextIndex)
+            } else {
                 _errorMessage.value = "All channels failed to play."
                 isRecovering = false
-                return
             }
         }
+    }
 
-        Log.d(TAG, "Auto-advancing to next channel for error recovery: index $nextIndex")
-        setIndexAndPlay(nextIndex)
-        // Keep recovering flag true until Playing state resets it
+    private fun findNextAvailableIndex(list: List<Channel>): Int {
+        var next = (_currentIndex.value ?: 0) + 1
+        if (next >= list.size) next = 0
+        while (attemptedIndicesInCycle.contains(next)) {
+            next++
+            if (next >= list.size) next = 0
+            if (next == (_currentIndex.value ?: 0)) return -1
+        }
+        return next
     }
 
     private fun cancelErrorRecovery() {
@@ -246,10 +220,12 @@ class MainViewModel(
         _showChannelList.value = visible
     }
 
-    // Playlist Management
-    fun addPlaylist(name: String, url: String) {
+    fun addPlaylist(
+        name: String,
+        url: String,
+    ) {
         repository.addPlaylist(name, url)
-        loadPlaylists() // Reloads data
+        loadPlaylists()
     }
 
     fun togglePlaylist(id: String) {

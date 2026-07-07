@@ -9,7 +9,6 @@ import com.zapperiptv.ui.ImageLoader
 import com.zapperiptv.viewmodel.MainViewModelFactory
 
 class ZapperApp : Application() {
-    
     lateinit var preferencesManager: PreferencesManager
     lateinit var playlistDownloader: PlaylistDownloader
     lateinit var m3uParser: M3uParser
@@ -18,23 +17,24 @@ class ZapperApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        ImageLoader.init(cacheDir)   // uses internal cache
+        ImageLoader.init(cacheDir)
 
-        // Manual dependency injection
         preferencesManager = PreferencesManager(this)
         playlistDownloader = PlaylistDownloader(this)
         m3uParser = M3uParser()
-        
-        playlistRepository = PlaylistRepository(
-            this,
-            preferencesManager,
-            playlistDownloader,
-            m3uParser
-        )
-        
-        mainViewModelFactory = MainViewModelFactory(
-            playlistRepository,
-            preferencesManager
-        )
+
+        playlistRepository =
+            PlaylistRepository(
+                this,
+                preferencesManager,
+                playlistDownloader,
+                m3uParser,
+            )
+
+        mainViewModelFactory =
+            MainViewModelFactory(
+                playlistRepository,
+                preferencesManager,
+            )
     }
 }

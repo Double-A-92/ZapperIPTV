@@ -10,6 +10,7 @@ import com.zapperiptv.parser.M3uParser
 import com.zapperiptv.storage.PreferencesManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.io.IOException
 import java.io.InputStream
 import java.util.UUID
 
@@ -17,26 +18,27 @@ class PlaylistRepository(
     private val context: Context,
     private val preferencesManager: PreferencesManager,
     private val playlistDownloader: PlaylistDownloader,
-    private val m3uParser: M3uParser
+    private val m3uParser: M3uParser,
 ) {
-
     companion object {
         private const val TAG = "PlaylistRepository"
     }
 
-    fun getPlaylists(): List<Playlist> {
-        return preferencesManager.loadPlaylists()
-    }
+    fun getPlaylists(): List<Playlist> = preferencesManager.loadPlaylists()
 
-    fun addPlaylist(name: String, url: String) {
+    fun addPlaylist(
+        name: String,
+        url: String,
+    ) {
         val playlists = getPlaylists().toMutableList()
-        val newPlaylist = Playlist(
-            id = UUID.randomUUID().toString(),
-            name = name,
-            url = url,
-            enabled = true,
-            lastUpdated = 0
-        )
+        val newPlaylist =
+            Playlist(
+                id = UUID.randomUUID().toString(),
+                name = name,
+                url = url,
+                enabled = true,
+                lastUpdated = 0,
+            )
         playlists.add(newPlaylist)
         preferencesManager.savePlaylists(playlists)
     }
@@ -65,85 +67,88 @@ class PlaylistRepository(
         }
     }
 
-    suspend fun loadChannels(forceReload: Boolean = false): List<Channel> = withContext(Dispatchers.IO) {
-        val playlists = getPlaylists()
-        val allChannels = mutableListOf<Channel>()
-        var globalChannelIndex = 1
+    suspend fun loadChannels(forceReload: Boolean = false): List<Channel> =
+        withContext(Dispatchers.IO) {
+            val playlists = getPlaylists().filter { it.enabled }
+            val allChannels = mutableListOf<Channel>()
+            var globalChannelIndex = 1
 
-        for (playlist in playlists.filter { it.enabled }) {
-            var channels: List<Channel> = emptyList()
-            var loadSuccess = false
-
-            try {
-                // Try remote download or file read
-                if (playlist.url.startsWith("http")) {
-                    if (forceReload || playlist.lastUpdated == 0L) {
-                        try {
-                            val stream = playlistDownloader.download(playlist.url, playlist.id)
-                            channels = m3uParser.parse(stream, playlist.id)
-                            loadSuccess = true
-                            playlist.lastUpdated = System.currentTimeMillis()
-                            updatePlaylist(playlist)
-                        } catch (e: Exception) {
-                            Log.e(TAG, "Failed to download ${playlist.name}, falling back to cache", e)
-                        }
-                    }
-
-                    // Fallback to cache if download failed or not forced
-                    if (!loadSuccess) {
-                        val cachedStream = playlistDownloader.getCached(playlist.id)
-                        if (cachedStream != null) {
-                            channels = m3uParser.parse(cachedStream, playlist.id)
-                            loadSuccess = true
-                        } else if (playlist.lastUpdated > 0L) {
-                            // We have no cache but lastUpdated > 0 means we used to have it, download must have failed
-                            // Try download one more time if we skipped it earlier
-                             try {
-                                val stream = playlistDownloader.download(playlist.url, playlist.id)
-                                channels = m3uParser.parse(stream, playlist.id)
-                                loadSuccess = true
-                                playlist.lastUpdated = System.currentTimeMillis()
-                                updatePlaylist(playlist)
-                            } catch (e: Exception) {
-                                Log.e(TAG, "Retry download failed for ${playlist.name}", e)
-                            }
-                        } else {
-                             Log.w(TAG, "No cache and never downloaded for ${playlist.name}")
-                        }
-                    }
-                } else {
-                    // Local file (content:// or file://)
-                    try {
-                        val uri = Uri.parse(playlist.url)
-                        val stream: InputStream? = context.contentResolver.openInputStream(uri)
-                        if (stream != null) {
-                            channels = m3uParser.parse(stream, playlist.id)
-                            loadSuccess = true
-                            playlist.lastUpdated = System.currentTimeMillis()
-                            updatePlaylist(playlist)
-                        } else {
-                            Log.w(TAG, "Could not open input stream for ${playlist.name}: ${playlist.url}")
-                        }
-                    } catch (e: SecurityException) {
-                        Log.e(TAG, "Permission denied for local playlist ${playlist.name}", e)
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Failed to read local playlist ${playlist.name}", e)
-                    }
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Error processing playlist ${playlist.name}", e)
-            }
-
-            if (loadSuccess) {
+            for (playlist in playlists) {
+                val channels = loadPlaylistChannels(playlist, forceReload)
                 // Assign display numbers
                 channels.forEach { channel ->
                     channel.displayNumber = channel.tvgChNo ?: globalChannelIndex++
                 }
                 allChannels.addAll(channels)
             }
+            allChannels
         }
 
-        // Return merged and numbered channels, preserving order
-        allChannels
+    private suspend fun loadPlaylistChannels(
+        playlist: Playlist,
+        forceReload: Boolean,
+    ): List<Channel> =
+        try {
+            if (playlist.url.startsWith("http")) {
+                loadRemotePlaylist(playlist, forceReload)
+            } else {
+                loadLocalPlaylist(playlist)
+            }
+        } catch (e: IOException) {
+            Log.e(TAG, "IO Error processing playlist ${playlist.name}", e)
+            emptyList()
+        }
+
+    private suspend fun loadRemotePlaylist(
+        playlist: Playlist,
+        forceReload: Boolean,
+    ): List<Channel> {
+        var channels: List<Channel>? = null
+        if (forceReload || playlist.lastUpdated == 0L) {
+            channels = downloadAndParse(playlist)
+        }
+
+        if (channels == null) {
+            val cachedStream = playlistDownloader.getCached(playlist.id)
+            if (cachedStream != null) {
+                channels = m3uParser.parse(cachedStream, playlist.id)
+            } else if (playlist.lastUpdated > 0L) {
+                channels = downloadAndParse(playlist)
+            }
+        }
+
+        return channels ?: emptyList()
     }
+
+    private suspend fun downloadAndParse(playlist: Playlist): List<Channel>? =
+        try {
+            val stream = playlistDownloader.download(playlist.url, playlist.id)
+            val channels = m3uParser.parse(stream, playlist.id)
+            playlist.lastUpdated = System.currentTimeMillis()
+            updatePlaylist(playlist)
+            channels
+        } catch (e: IOException) {
+            Log.e(TAG, "Failed to download ${playlist.name}", e)
+            null
+        }
+
+    private fun loadLocalPlaylist(playlist: Playlist): List<Channel> =
+        try {
+            val uri = Uri.parse(playlist.url)
+            val stream: InputStream? = context.contentResolver.openInputStream(uri)
+            if (stream != null) {
+                val channels = m3uParser.parse(stream, playlist.id)
+                playlist.lastUpdated = System.currentTimeMillis()
+                updatePlaylist(playlist)
+                channels
+            } else {
+                emptyList()
+            }
+        } catch (e: SecurityException) {
+            Log.e(TAG, "Permission denied for local playlist ${playlist.name}", e)
+            emptyList()
+        } catch (e: IOException) {
+            Log.e(TAG, "Failed to read local playlist ${playlist.name}", e)
+            emptyList()
+        }
 }

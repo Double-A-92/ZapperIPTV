@@ -53,27 +53,34 @@
         android:layout_gravity="bottom"
         android:background="@drawable/bg_overlay"
         android:orientation="horizontal"
-        android:padding="@dimen/overlay_padding"
         android:gravity="center_vertical"
+        android:padding="@dimen/overlay_padding"
         android:visibility="gone"
         tools:visibility="visible">
 
-        <TextView
-            android:id="@+id/overlay_channel_number"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:textColor="@color/accent_cyan"
-            android:textSize="48sp"
-            android:typeface="monospace"
-            android:textStyle="bold"
-            tools:text="101" />
+        <ImageView
+            android:id="@+id/overlay_channel_logo"
+            android:layout_width="132dp"
+            android:layout_height="64dp"
+            android:scaleType="centerInside"
+            android:contentDescription="@null"
+            tools:src="@drawable/ic_placeholder_logo" />
 
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
-            android:layout_marginStart="24dp"
+            android:layout_marginStart="12dp"
             android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/overlay_channel_number"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textColor="@color/text_secondary"
+                android:textSize="14sp"
+                android:textStyle="bold"
+                tools:text="101" />
 
             <TextView
                 android:id="@+id/overlay_channel_name"
@@ -85,26 +92,18 @@
                 android:ellipsize="end"
                 android:singleLine="true"
                 tools:text="BBC One HD" />
-
-            <TextView
-                android:id="@+id/overlay_playlist_name"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:textColor="@color/text_secondary"
-                android:textSize="@dimen/text_size_medium"
-                tools:text="UK Channels" />
         </LinearLayout>
 
-        <TextView
-            android:id="@+id/overlay_status"
+        <ProgressBar
+            android:id="@+id/overlay_loading"
+            style="?android:attr/progressBarStyleSmall"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="@color/accent_amber"
-            android:textSize="@dimen/text_size_medium"
             android:layout_marginStart="16dp"
-            tools:text="Loading..." />
+            android:indeterminateTint="@color/accent_amber"
+            android:visibility="gone"
+            tools:visibility="visible" />
     </LinearLayout>
-
     <FrameLayout
         android:id="@+id/channel_list_container"
         android:layout_width="400dp"
@@ -114,45 +113,14 @@
         android:visibility="gone"
         tools:visibility="visible">
 
-        <LinearLayout
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/channel_recycler_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:orientation="vertical">
-            
-            <LinearLayout
-                android:id="@+id/settings_button"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal"
-                android:padding="16dp"
-                android:gravity="center_vertical"
-                android:background="?android:attr/selectableItemBackground"
-                android:focusable="true"
-                android:clickable="true">
-                
-                <ImageView
-                    android:layout_width="24dp"
-                    android:layout_height="24dp"
-                    android:src="@drawable/ic_settings"
-                    android:contentDescription="@string/settings" />
-                    
-                <TextView
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="16dp"
-                    android:text="@string/settings"
-                    android:textColor="@color/text_primary"
-                    android:textSize="@dimen/text_size_medium" />
-            </LinearLayout>
-            
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/channel_recycler_view"
-                android:layout_width="match_parent"
-                android:layout_height="0dp"
-                android:layout_weight="1"
-                android:clipToPadding="false"
-                android:padding="8dp" />
-        </LinearLayout>
+            android:clipToPadding="false"
+            android:padding="8dp"
+            android:focusable="true"
+            android:focusableInTouchMode="false" />
     </FrameLayout>
 
     <TextView

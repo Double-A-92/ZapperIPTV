@@ -4,11 +4,13 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.util.Log
 import com.google.gson.Gson
+import com.google.gson.JsonSyntaxException
 import com.google.gson.reflect.TypeToken
 import com.zapperiptv.model.Playlist
 
-class PreferencesManager(context: Context) {
-    
+class PreferencesManager(
+    context: Context,
+) {
     private val prefs: SharedPreferences = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
     private val gson = Gson()
 
@@ -25,13 +27,13 @@ class PreferencesManager(context: Context) {
         try {
             val json = gson.toJson(playlists)
             prefs.edit().putString(KEY_PLAYLISTS, json).apply()
-        } catch (e: Exception) {
+        } catch (e: JsonSyntaxException) {
             Log.e(TAG, "Error saving playlists", e)
         }
     }
 
-    fun loadPlaylists(): List<Playlist> {
-        return try {
+    fun loadPlaylists(): List<Playlist> =
+        try {
             val json = prefs.getString(KEY_PLAYLISTS, null)
             if (json != null) {
                 val type = object : TypeToken<List<Playlist>>() {}.type
@@ -39,15 +41,18 @@ class PreferencesManager(context: Context) {
             } else {
                 emptyList()
             }
-        } catch (e: Exception) {
+        } catch (e: JsonSyntaxException) {
             Log.e(TAG, "Error loading playlists, corrupt data. Resetting.", e)
             prefs.edit().remove(KEY_PLAYLISTS).apply()
             emptyList()
         }
-    }
 
-    fun saveLastChannel(sourceId: String, streamUrl: String) {
-        prefs.edit()
+    fun saveLastChannel(
+        sourceId: String,
+        streamUrl: String,
+    ) {
+        prefs
+            .edit()
             .putString(KEY_LAST_CHANNEL_SOURCE_ID, sourceId)
             .putString(KEY_LAST_CHANNEL_URL, streamUrl)
             .apply()
@@ -71,7 +76,5 @@ class PreferencesManager(context: Context) {
         }
     }
 
-    fun loadLastSelectedPlaylist(): String? {
-        return prefs.getString(KEY_LAST_SELECTED_PLAYLIST, null)
-    }
+    fun loadLastSelectedPlaylist(): String? = prefs.getString(KEY_LAST_SELECTED_PLAYLIST, null)
 }

@@ -8,17 +8,16 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.Window
 import android.widget.Toast
+import androidx.core.graphics.drawable.toDrawable
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import com.zapperiptv.R
 import com.zapperiptv.databinding.DialogAddPlaylistBinding
 import com.zapperiptv.viewmodel.MainViewModel
-import androidx.core.graphics.drawable.toDrawable
 
 class AddPlaylistDialogFragment : DialogFragment() {
-
     private var _binding: DialogAddPlaylistBinding? = null
-    private val binding get() = _binding!!
+    val binding get() = _binding!!
 
     private val viewModel: MainViewModel by activityViewModels()
 
@@ -27,19 +26,27 @@ class AddPlaylistDialogFragment : DialogFragment() {
         private const val ARG_URL = "arg_url"
         private const val ARG_IS_LOCAL = "arg_is_local"
 
-        fun newInstance(name: String? = null, url: String? = null, isLocal: Boolean = false): AddPlaylistDialogFragment {
+        fun newInstance(
+            name: String? = null,
+            url: String? = null,
+            isLocal: Boolean = false,
+        ): AddPlaylistDialogFragment {
             val fragment = AddPlaylistDialogFragment()
-            val args = Bundle().apply {
-                putString(ARG_NAME, name)
-                putString(ARG_URL, url)
-                putBoolean(ARG_IS_LOCAL, isLocal)
-            }
-            fragment.arguments = args
+            fragment.arguments =
+                Bundle().apply {
+                    putString(ARG_NAME, name)
+                    putString(ARG_URL, url)
+                    putBoolean(ARG_IS_LOCAL, isLocal)
+                }
             return fragment
         }
     }
 
-    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View {
+    override fun onCreateView(
+        inflater: LayoutInflater,
+        container: ViewGroup?,
+        savedInstanceState: Bundle?,
+    ): View {
         _binding = DialogAddPlaylistBinding.inflate(inflater, container, false)
         return binding.root
     }
@@ -51,47 +58,38 @@ class AddPlaylistDialogFragment : DialogFragment() {
         return dialog
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    override fun onViewCreated(
+        view: View,
+        savedInstanceState: Bundle?,
+    ) {
         super.onViewCreated(view, savedInstanceState)
 
         val initialName = arguments?.getString(ARG_NAME)
         val initialUrl = arguments?.getString(ARG_URL)
         val isLocal = arguments?.getBoolean(ARG_IS_LOCAL) ?: false
 
-        if (initialName != null) {
-            binding.inputName.setText(initialName)
-        }
-        if (initialUrl != null) {
-            binding.inputUrl.setText(initialUrl)
-        }
-        
-        if (isLocal) {
-            binding.dialogTitle.setText(R.string.add_local_playlist)
-            // If it's local, the URL is already set by the picker, 
-            // but we might want to show it as read-only or just let them see it.
-            // Many users prefer to see what was picked.
-        }
+        if (initialName != null) binding.inputName.setText(initialName)
+        if (initialUrl != null) binding.inputUrl.setText(initialUrl)
+        if (isLocal) binding.dialogTitle.setText(R.string.add_local_playlist)
 
-        binding.btnCancel.setOnClickListener {
-            dismiss()
-        }
+        binding.btnCancel.setOnClickListener { dismiss() }
 
         binding.btnSave.setOnClickListener {
-            val name = binding.inputName.text.toString().trim()
-            val url = binding.inputUrl.text.toString().trim()
+            val name =
+                binding.inputName.text
+                    .toString()
+                    .trim()
+            val url =
+                binding.inputUrl.text
+                    .toString()
+                    .trim()
 
             if (name.isEmpty()) {
                 Toast.makeText(context, R.string.error_empty_name, Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
 
-            if (url.isEmpty()) {
-                Toast.makeText(context, R.string.error_invalid_url, Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-
-            // Skip http validation for local files (content://)
-            if (!isLocal && !url.startsWith("http://") && !url.startsWith("https://")) {
+            if (!isValid(url, isLocal)) {
                 Toast.makeText(context, R.string.error_invalid_url, Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
@@ -99,6 +97,14 @@ class AddPlaylistDialogFragment : DialogFragment() {
             viewModel.addPlaylist(name, url)
             dismiss()
         }
+    }
+
+    private fun isValid(
+        url: String,
+        isLocal: Boolean,
+    ): Boolean {
+        if (url.isEmpty()) return false
+        return isLocal || url.startsWith("http://") || url.startsWith("https://")
     }
 
     override fun onDestroyView() {

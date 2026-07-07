@@ -11,29 +11,50 @@ import com.zapperiptv.databinding.ItemChannelBinding
 import com.zapperiptv.model.Channel
 
 class ChannelListAdapter(
-    private val onChannelSelected: (Int) -> Unit
+    private val onChannelSelected: (Int) -> Unit,
 ) : ListAdapter<Channel, ChannelListAdapter.ChannelViewHolder>(ChannelDiffCallback()) {
+    companion object {
+        private const val FOCUS_SCALE = 1.04f
+        private const val ANIMATION_DURATION = 150L
+    }
 
-    private val indicatorColors = listOf(
-        R.color.channel_indicator_1,
-        R.color.channel_indicator_2,
-        R.color.channel_indicator_3,
-        R.color.channel_indicator_4
-    )
+    private val indicatorColorResIds =
+        intArrayOf(
+            R.color.channel_indicator_1,
+            R.color.channel_indicator_2,
+            R.color.channel_indicator_3,
+            R.color.channel_indicator_4,
+        )
 
+    private var indicatorColors: IntArray? = null
     private val sourceColorMap = mutableMapOf<String, Int>()
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ChannelViewHolder {
+    override fun onCreateViewHolder(
+        parent: ViewGroup,
+        viewType: Int,
+    ): ChannelViewHolder {
         val binding = ItemChannelBinding.inflate(LayoutInflater.from(parent.context), parent, false)
         return ChannelViewHolder(binding)
     }
 
-    override fun onBindViewHolder(holder: ChannelViewHolder, position: Int) {
+    override fun onBindViewHolder(
+        holder: ChannelViewHolder,
+        position: Int,
+    ) {
         val channel = getItem(position)
         holder.bind(channel)
     }
 
-    inner class ChannelViewHolder(private val binding: ItemChannelBinding) : RecyclerView.ViewHolder(binding.root) {
+    override fun onViewRecycled(holder: ChannelViewHolder) {
+        holder.binding.root
+            .animate()
+            .cancel()
+        super.onViewRecycled(holder)
+    }
+
+    inner class ChannelViewHolder(
+        val binding: ItemChannelBinding,
+    ) : RecyclerView.ViewHolder(binding.root) {
         init {
             binding.root.setOnClickListener {
                 val position = absoluteAdapterPosition
@@ -42,13 +63,13 @@ class ChannelListAdapter(
                 }
             }
 
-            // Handle focus scaling for Android TV with animation cancellation
             binding.root.setOnFocusChangeListener { view, hasFocus ->
-                val scale = if (hasFocus) 1.04f else 1f
-                view.animate()
+                val scale = if (hasFocus) FOCUS_SCALE else 1f
+                view
+                    .animate()
                     .scaleX(scale)
                     .scaleY(scale)
-                    .setDuration(150)
+                    .setDuration(ANIMATION_DURATION)
                     .start()
             }
         }
@@ -56,23 +77,32 @@ class ChannelListAdapter(
         fun bind(channel: Channel) {
             binding.channelName.text = channel.name
 
-            // Assign a consistent color to each sourceId efficiently
-            val color = sourceColorMap.getOrPut(channel.sourceId) {
-                val colorRes = indicatorColors[sourceColorMap.size % indicatorColors.size]
-                ContextCompat.getColor(binding.root.context, colorRes)
-            }
+            val colors =
+                indicatorColors ?: IntArray(indicatorColorResIds.size).also { arr ->
+                    indicatorColorResIds.forEachIndexed { i, resId ->
+                        arr[i] = ContextCompat.getColor(binding.root.context, resId)
+                    }
+                    indicatorColors = arr
+                }
+
+            val color =
+                sourceColorMap.getOrPut(channel.sourceId) {
+                    colors[sourceColorMap.size % colors.size]
+                }
             ImageLoader.load(channel.logoUrl, binding.channelLogo, R.drawable.ic_placeholder_logo)
             binding.playlistIndicator.setTextColor(color)
         }
     }
 
     class ChannelDiffCallback : DiffUtil.ItemCallback<Channel>() {
-        override fun areItemsTheSame(oldItem: Channel, newItem: Channel): Boolean {
-            return oldItem.streamUrl == newItem.streamUrl && oldItem.sourceId == newItem.sourceId
-        }
+        override fun areItemsTheSame(
+            oldItem: Channel,
+            newItem: Channel,
+        ): Boolean = oldItem.streamUrl == newItem.streamUrl && oldItem.sourceId == newItem.sourceId
 
-        override fun areContentsTheSame(oldItem: Channel, newItem: Channel): Boolean {
-            return oldItem == newItem
-        }
+        override fun areContentsTheSame(
+            oldItem: Channel,
+            newItem: Channel,
+        ): Boolean = oldItem == newItem
     }
 }

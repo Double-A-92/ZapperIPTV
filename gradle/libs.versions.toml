@@ -16,6 +16,8 @@ media3 = "1.6.1"
 leanback = "1.0.0"
 recyclerview = "1.3.2"
 gson = "2.11.0"
+ktlint = "14.2.0"
+detekt = "1.23.8"
 
 [libraries]
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidxCore" }
@@ -43,6 +45,9 @@ androidx-media3-exoplayer-rtsp = { module = "androidx.media3:media3-exoplayer-rt
 androidx-leanback = { module = "androidx.leanback:leanback", version.ref = "leanback" }
 androidx-recyclerview = { module = "androidx.recyclerview:recyclerview", version.ref = "recyclerview" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+detektFormatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradlePlugin" }
+ktlint = { id = "org.jlleitschuh.gradle.ktlint", version.ref = "ktlint" }
+detekt = { id = "io.gitlab.arturbosch.detekt", version.ref = "detekt" }

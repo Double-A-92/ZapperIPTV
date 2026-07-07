@@ -1,0 +1,102 @@
+# EditorConfig for ZapperIPTV - ktlint configuration
+# This file configures ktlint formatting rules
+
+root = true
+
+[*]
+indent_style = space
+indent_size = 4
+end_of_line = lf
+charset = utf-8
+trim_trailing_whitespace = true
+insert_final_newline = true
+
+[*.{kt,kts}]
+# Kotlin specific settings
+indent_size = 4
+continuation_indent_size = 4
+
+# ktlint rules
+# disabled_rules = no-wildcard-imports,no-consecutive-blank-lines,no-trailing-whitespace,no-tabs,no-semicolons,no-unused-imports,no-unnecessary-parentheses,no-unnecessary-return,no-unnecessary-let,no-unnecessary-apply,no-unnecessary-also,no-unnecessary-run,no-unnecessary-with,no-unnecessary-take-if,no-unnecessary-take-unless,no-unnecessary-require,no-unnecessary-check,no-unnecessary-assert,no-unnecessary-require-not-null,no-unnecessary-check-not-null,no-unnecessary-assert-not-null,no-unnecessary-require-not-null,no-unnecessary-check-not-null,no-unnecessary-assert-not-null
+
+# Maximum line length
+max_line_length = 120
+
+# Import ordering
+ij_kotlin_imports_layout = IDEA
+ij_kotlin_imports_use_single_name_imports = true
+ij_kotlin_imports_use_star_imports = false
+ij_kotlin_imports_star_import_threshold = 5
+ij_kotlin_imports_star_import_threshold_for_star_import = 5
+
+# Spacing
+ij_kotlin_space_before_colon_in_type_annotation = true
+ij_kotlin_space_after_colon_in_type_annotation = true
+ij_kotlin_space_before_colon_in_supertype = true
+ij_kotlin_space_after_colon_in_supertype = true
+ij_kotlin_space_before_comma = false
+ij_kotlin_space_after_comma = true
+ij_kotlin_space_before_semicolon = false
+ij_kotlin_space_after_semicolon = true
+ij_kotlin_space_around_binary_operator = true
+ij_kotlin_space_around_assignment_operator = true
+ij_kotlin_space_around_range_operator = false
+ij_kotlin_space_before_lambda_arrow = true
+ij_kotlin_space_after_lambda_arrow = true
+ij_kotlin_space_before_open_brace = true
+ij_kotlin_space_after_open_brace = false
+ij_kotlin_space_before_close_brace = false
+ij_kotlin_space_within_braces = false
+ij_kotlin_space_within_brackets = false
+ij_kotlin_space_within_parentheses = false
+ij_kotlin_space_before_parentheses_in_type_annotation = false
+ij_kotlin_space_after_parentheses_in_type_annotation = false
+
+# Braces
+ij_kotlin_brace_style = END_OF_LINE
+ij_kotlin_else_on_new_line = true
+ij_kotlin_while_on_new_line = true
+ij_kotlin_catch_on_new_line = true
+ij_kotlin_finally_on_new_line = true
+
+# Wrapping
+ij_kotlin_wrap_chained_method_calls = true
+ij_kotlin_wrap_binary_expressions = true
+ij_kotlin_wrap_ternary_expressions = true
+ij_kotlin_wrap_try_resources = true
+ij_kotlin_wrap_parameter_list = true
+ij_kotlin_wrap_argument_list = true
+ij_kotlin_wrap_extends_list = true
+ij_kotlin_wrap_implements_list = true
+ij_kotlin_wrap_throws_list = true
+
+# Blank lines
+ij_kotlin_blank_lines_around_class = 1
+ij_kotlin_blank_lines_around_function = 1
+ij_kotlin_blank_lines_around_property = 1
+ij_kotlin_blank_lines_around_field = 1
+ij_kotlin_blank_lines_before_package_statement = 0
+ij_kotlin_blank_lines_after_package_statement = 1
+ij_kotlin_blank_lines_before_imports = 1
+ij_kotlin_blank_lines_after_imports = 1
+ij_kotlin_blank_lines_around_block = 1
+ij_kotlin_blank_lines_around_block_in_expression_body = 0
+
+# Alignment
+ij_kotlin_align_multiline_parameters = true
+ij_kotlin_align_multiline_arguments = true
+ij_kotlin_align_multiline_binary_operation = true
+ij_kotlin_align_multiline_ternary_operation = true
+ij_kotlin_align_multiline_chained_methods = true
+ij_kotlin_align_multiline_extends_list = true
+ij_kotlin_align_multiline_implements_list = true
+ij_kotlin_align_multiline_throws_list = true
+
+# Trailing commas
+ij_kotlin_trailing_comma_multiline = true
+ij_kotlin_trailing_comma_singleline = false
+
+# Other
+ij_kotlin_use_flying_geese_braces = false
+ij_kotlin_place_annotations_on_separate_lines = true
+ij_kotlin_place_annotations_on_same_line = false

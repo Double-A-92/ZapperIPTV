@@ -7,7 +7,7 @@ import com.zapperiptv.storage.PreferencesManager
 
 class MainViewModelFactory(
     private val repository: PlaylistRepository,
-    private val preferencesManager: PreferencesManager
+    private val preferencesManager: PreferencesManager,
 ) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(MainViewModel::class.java)) {
