@@ -136,9 +136,13 @@ class PlayerActivity : AppCompatActivity() {
             if (show) focusCurrentChannel()
         }
 
-        viewModel.errorMessage.observe(this) { msg ->
-            binding.errorPersistent.text = msg
-            binding.errorPersistent.isVisible = msg != null
+        viewModel.errorMessage.observe(this) { msgId ->
+            if (msgId != null) {
+                binding.errorPersistent.setText(msgId)
+                binding.errorPersistent.isVisible = true
+            } else {
+                binding.errorPersistent.isVisible = false
+            }
         }
     }
 
@@ -203,7 +207,7 @@ class PlayerActivity : AppCompatActivity() {
                 }
 
                 override fun onPlayerError(error: PlaybackException) {
-                    viewModel.setPlaybackState(PlaybackState.Error(error.message ?: "Unknown Error"))
+                    viewModel.setPlaybackState(PlaybackState.Error(error.message ?: getString(R.string.error_unknown)))
                 }
             })
         }

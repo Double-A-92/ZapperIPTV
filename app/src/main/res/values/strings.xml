@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name">ZapperIPTV</string>
-    <string name="welcome_message">Welcome to BlubZapperIPTV</string>
+    <string name="welcome_message">Welcome to ZapperIPTV</string>
     <string name="welcome_instruction">Press LEFT to open Settings and add a playlist.</string>
     <string name="no_channels_available">No channels available.</string>
     <string name="check_playlist_configuration">Please check your playlist configuration in Settings.</string>
@@ -12,6 +12,20 @@
     <string name="playlist_url">Playlist URL</string>
     <string name="save">Save</string>
     <string name="cancel">Cancel</string>
+    <string name="delete">Delete</string>
+    <string name="playlists">Playlists</string>
+    <string name="add_url">Add URL</string>
+    <string name="add_local">Add Local</string>
+    <string name="reload">Reload</string>
+    <string name="empty_playlists_message">No playlists added yet.\nSelect \'Add URL\' or \'Add Local\' to get started.</string>
+    <string name="default_local_playlist_name">Local Playlist</string>
+    <string name="playlist_last_updated">Last updated: %s</string>
+    <string name="playlist_never_updated">Never updated</string>
     <string name="error_invalid_url">Invalid URL</string>
     <string name="error_empty_name">Name cannot be empty</string>
+    <string name="error_all_channels_failed">All channels failed to play.</string>
+    <string name="error_unknown">Unknown Error</string>
+    <string name="channel_unknown">Unknown Channel</string>
+    <string name="channel_default_name">Channel %d</string>
+    <string name="group_other">Other</string>
 </resources>

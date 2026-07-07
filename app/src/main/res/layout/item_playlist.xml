@@ -34,7 +34,7 @@
             android:ellipsize="end"
             android:singleLine="true"
             tools:text="http://example.com/playlist.m3u" />
-            
+
         <TextView
             android:id="@+id/playlist_status"
             android:layout_width="wrap_content"
@@ -55,7 +55,7 @@
         android:id="@+id/btn_delete"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Delete"
+        android:text="@string/delete"
         android:focusable="true" />
 
 </LinearLayout>

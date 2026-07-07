@@ -7,6 +7,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.zapperiptv.R
 import com.zapperiptv.model.Channel
 import com.zapperiptv.model.PlaybackState
 import com.zapperiptv.model.Playlist
@@ -40,8 +41,8 @@ class MainViewModel(
     private val _isLoading = MutableLiveData<Boolean>(false)
     val isLoading: LiveData<Boolean> = _isLoading
 
-    private val _errorMessage = MutableLiveData<String?>(null)
-    val errorMessage: LiveData<String?> = _errorMessage
+    private val _errorMessage = MutableLiveData<Int?>(null)
+    val errorMessage: LiveData<Int?> = _errorMessage
 
     private val _showOverlay = MutableLiveData<Boolean>(false)
     val showOverlay: LiveData<Boolean> = _showOverlay
@@ -174,7 +175,7 @@ class MainViewModel(
                 Log.d(TAG, "Auto-advancing to next channel for error recovery: index $nextIndex")
                 setIndexAndPlay(nextIndex)
             } else {
-                _errorMessage.value = "All channels failed to play."
+                _errorMessage.value = R.string.error_all_channels_failed
                 isRecovering = false
             }
         }

@@ -5,6 +5,7 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
+import com.zapperiptv.R
 import com.zapperiptv.databinding.ItemPlaylistBinding
 import com.zapperiptv.model.Playlist
 import java.text.SimpleDateFormat
@@ -46,9 +47,9 @@ class PlaylistAdapter(
 
             val statusText =
                 if (playlist.lastUpdated > 0L) {
-                    "Last updated: ${dateFormat.format(Date(playlist.lastUpdated))}"
+                    binding.root.context.getString(R.string.playlist_last_updated, dateFormat.format(Date(playlist.lastUpdated)))
                 } else {
-                    "Never updated"
+                    binding.root.context.getString(R.string.playlist_never_updated)
                 }
             binding.playlistStatus.text = statusText
 

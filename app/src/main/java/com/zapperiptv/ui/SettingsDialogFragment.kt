@@ -128,7 +128,7 @@ class SettingsDialogFragment : DialogFragment() {
             Log.w(TAG, "Could not take persistable permission for $uri", e)
         }
 
-        val fileName = getFileName(uri) ?: "Local Playlist"
+        val fileName = getFileName(uri) ?: getString(R.string.default_local_playlist_name)
         AddPlaylistDialogFragment
             .newInstance(fileName, uri.toString(), true)
             .show(childFragmentManager, "AddLocalPlaylist")
