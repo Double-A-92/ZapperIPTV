@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
@@ -8,7 +9,7 @@
     android:padding="16dp"
     android:layout_marginVertical="4dp"
     android:background="@drawable/bg_channel_item"
-    android:focusable="true">
+    android:focusable="false">
 
     <LinearLayout
         android:layout_width="0dp"
@@ -44,18 +45,31 @@
             tools:text="Last updated: 10 mins ago" />
     </LinearLayout>
 
-    <Switch
-        android:id="@+id/playlist_enabled"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginEnd="16dp"
-        android:focusable="true" />
+    <ImageView
+        android:id="@+id/btn_edit"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:padding="12dp"
+        android:src="@drawable/ic_edit"
+        app:tint="@color/text_button_cyan"
+        android:background="@drawable/bg_button_cyan"
+        android:focusable="true"
+        android:clickable="true"
+        android:nextFocusRight="@+id/btn_delete"
+        android:layout_marginEnd="8dp"
+        android:contentDescription="@string/save" />
 
-    <Button
+    <ImageView
         android:id="@+id/btn_delete"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/delete"
-        android:focusable="true" />
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:padding="12dp"
+        android:src="@drawable/ic_delete"
+        app:tint="@color/text_button_amber"
+        android:background="@drawable/bg_button_amber"
+        android:focusable="true"
+        android:clickable="true"
+        android:nextFocusLeft="@+id/btn_edit"
+        android:contentDescription="@string/delete" />
 
 </LinearLayout>

@@ -13,7 +13,7 @@ import java.util.Date
 import java.util.Locale
 
 class PlaylistAdapter(
-    private val onToggle: (String) -> Unit,
+    private val onEdit: (Playlist) -> Unit,
     private val onDelete: (String) -> Unit,
 ) : ListAdapter<Playlist, PlaylistAdapter.PlaylistViewHolder>(PlaylistDiffCallback()) {
     private val dateFormat = SimpleDateFormat("MMM dd, HH:mm", Locale.getDefault())
@@ -53,10 +53,8 @@ class PlaylistAdapter(
                 }
             binding.playlistStatus.text = statusText
 
-            binding.playlistEnabled.setOnCheckedChangeListener(null)
-            binding.playlistEnabled.isChecked = playlist.enabled
-            binding.playlistEnabled.setOnCheckedChangeListener { _, _ ->
-                onToggle(playlist.id)
+            binding.btnEdit.setOnClickListener {
+                onEdit(playlist)
             }
 
             binding.btnDelete.setOnClickListener {
@@ -65,7 +63,7 @@ class PlaylistAdapter(
         }
 
         fun detachListeners() {
-            binding.playlistEnabled.setOnCheckedChangeListener(null)
+            binding.btnEdit.setOnClickListener(null)
             binding.btnDelete.setOnClickListener(null)
         }
     }

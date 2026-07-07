@@ -36,7 +36,6 @@ class PlaylistRepository(
                 id = UUID.randomUUID().toString(),
                 name = name,
                 url = url,
-                enabled = true,
                 lastUpdated = 0,
             )
         playlists.add(newPlaylist)
@@ -58,18 +57,9 @@ class PlaylistRepository(
         preferencesManager.savePlaylists(playlists)
     }
 
-    fun togglePlaylist(id: String) {
-        val playlists = getPlaylists().toMutableList()
-        val index = playlists.indexOfFirst { it.id == id }
-        if (index != -1) {
-            playlists[index].enabled = !playlists[index].enabled
-            preferencesManager.savePlaylists(playlists)
-        }
-    }
-
     suspend fun loadChannels(forceReload: Boolean = false): List<Channel> =
         withContext(Dispatchers.IO) {
-            val playlists = getPlaylists().filter { it.enabled }
+            val playlists = getPlaylists()
             val allChannels = mutableListOf<Channel>()
             var globalChannelIndex = 1
 

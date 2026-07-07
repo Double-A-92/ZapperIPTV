@@ -1,13 +1,9 @@
 package com.zapperiptv.ui
 
 import android.app.Dialog
-import android.content.Intent
 import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
-import android.net.Uri
 import android.os.Bundle
-import android.provider.OpenableColumns
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -23,7 +19,6 @@ import com.zapperiptv.viewmodel.MainViewModel
 
 class SettingsDialogFragment : DialogFragment() {
     companion object {
-        private const val TAG = "SettingsDialog"
         private const val DIALOG_WIDTH_MAX_DP = 600
         private const val DIALOG_WIDTH_RATIO = 0.85f
         private const val DIM_AMOUNT = 0.7f
@@ -34,13 +29,6 @@ class SettingsDialogFragment : DialogFragment() {
 
     private val viewModel: MainViewModel by activityViewModels()
     private lateinit var adapter: PlaylistAdapter
-
-    private val localPlaylistLauncher =
-        registerForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
-            if (uri != null) {
-                handleLocalPlaylistSelected(uri)
-            }
-        }
 
     private var playlistsObserver: Observer<List<Playlist>>? = null
 
@@ -61,7 +49,11 @@ class SettingsDialogFragment : DialogFragment() {
     private fun setupContent() {
         adapter =
             PlaylistAdapter(
-                onToggle = { id -> viewModel.togglePlaylist(id) },
+                onEdit = { playlist ->
+                    AddPlaylistDialogFragment
+                        .newInstance(playlist.id, playlist.name, playlist.url)
+                        .show(childFragmentManager, "EditPlaylist")
+                },
                 onDelete = { id -> viewModel.removePlaylist(id) },
             )
 
@@ -76,9 +68,6 @@ class SettingsDialogFragment : DialogFragment() {
 
         binding.btnAddUrl.setOnClickListener {
             AddPlaylistDialogFragment().show(childFragmentManager, "AddPlaylist")
-        }
-        binding.btnAddLocal.setOnClickListener {
-            localPlaylistLauncher.launch(arrayOf("*/*"))
         }
         binding.btnReload.setOnClickListener {
             viewModel.loadPlaylists(forceReload = true)
@@ -116,45 +105,5 @@ class SettingsDialogFragment : DialogFragment() {
 
     private fun toggleEmptyMessage(isEmpty: Boolean) {
         binding.emptyPlaylistsMessage.visibility = if (isEmpty) View.VISIBLE else View.GONE
-    }
-
-    private fun handleLocalPlaylistSelected(uri: Uri) {
-        try {
-            requireContext().contentResolver.takePersistableUriPermission(
-                uri,
-                Intent.FLAG_GRANT_READ_URI_PERMISSION,
-            )
-        } catch (e: SecurityException) {
-            Log.w(TAG, "Could not take persistable permission for $uri", e)
-        }
-
-        val fileName = getFileName(uri) ?: getString(R.string.default_local_playlist_name)
-        AddPlaylistDialogFragment
-            .newInstance(fileName, uri.toString(), true)
-            .show(childFragmentManager, "AddLocalPlaylist")
-    }
-
-    private fun getFileName(uri: Uri): String? {
-        var result = getFileNameFromContent(uri)
-        if (result == null) {
-            result =
-                uri.path?.let { path ->
-                    val cut = path.lastIndexOf('/')
-                    if (cut != -1) path.substring(cut + 1) else path
-                }
-        }
-        return result?.removeSuffix(".m3u")?.removeSuffix(".m3u8")
-    }
-
-    private fun getFileNameFromContent(uri: Uri): String? {
-        if (uri.scheme != "content") return null
-        return requireContext().contentResolver.query(uri, null, null, null, null)?.use { cursor ->
-            if (cursor.moveToFirst()) {
-                val index = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
-                if (index != -1) cursor.getString(index) else null
-            } else {
-                null
-            }
-        }
     }
 }

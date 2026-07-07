@@ -229,9 +229,18 @@ class MainViewModel(
         loadPlaylists()
     }
 
-    fun togglePlaylist(id: String) {
-        repository.togglePlaylist(id)
-        loadPlaylists()
+    fun updatePlaylist(
+        id: String,
+        name: String,
+        url: String,
+    ) {
+        val playlists = repository.getPlaylists()
+        val playlist = playlists.find { it.id == id }
+        if (playlist != null) {
+            val updatedPlaylist = playlist.copy(name = name, url = url)
+            repository.updatePlaylist(updatedPlaylist)
+            loadPlaylists()
+        }
     }
 
     fun removePlaylist(id: String) {
