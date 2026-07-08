@@ -1,4 +1,4 @@
-package com.zapperiptv.ui
+package com.amedeo.zapperiptv.ui
 
 import android.app.Dialog
 import android.content.Intent
@@ -13,9 +13,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.graphics.drawable.toDrawable
 import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
-import com.zapperiptv.R
-import com.zapperiptv.databinding.DialogAddPlaylistBinding
-import com.zapperiptv.viewmodel.MainViewModel
+import com.amedeo.zapperiptv.R
+import com.amedeo.zapperiptv.databinding.DialogAddPlaylistBinding
+import com.amedeo.zapperiptv.viewmodel.MainViewModel
 
 class AddPlaylistDialogFragment : DialogFragment() {
     private var _binding: DialogAddPlaylistBinding? = null

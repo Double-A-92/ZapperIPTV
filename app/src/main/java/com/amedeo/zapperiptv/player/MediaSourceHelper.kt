@@ -1,4 +1,4 @@
-package com.zapperiptv.player
+package com.amedeo.zapperiptv.player
 
 import androidx.media3.common.MediaItem
 import androidx.media3.common.MimeTypes

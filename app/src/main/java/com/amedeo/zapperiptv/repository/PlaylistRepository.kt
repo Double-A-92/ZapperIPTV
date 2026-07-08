@@ -1,13 +1,13 @@
-package com.zapperiptv.repository
+package com.amedeo.zapperiptv.repository
 
 import android.content.Context
 import android.net.Uri
 import android.util.Log
-import com.zapperiptv.model.Channel
-import com.zapperiptv.model.Playlist
-import com.zapperiptv.network.PlaylistDownloader
-import com.zapperiptv.parser.M3uParser
-import com.zapperiptv.storage.PreferencesManager
+import com.amedeo.zapperiptv.model.Channel
+import com.amedeo.zapperiptv.model.Playlist
+import com.amedeo.zapperiptv.network.PlaylistDownloader
+import com.amedeo.zapperiptv.parser.M3uParser
+import com.amedeo.zapperiptv.storage.PreferencesManager
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.IOException

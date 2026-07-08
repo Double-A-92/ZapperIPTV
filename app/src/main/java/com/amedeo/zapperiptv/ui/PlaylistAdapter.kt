@@ -1,13 +1,13 @@
-package com.zapperiptv.ui
+package com.amedeo.zapperiptv.ui
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.zapperiptv.R
-import com.zapperiptv.databinding.ItemPlaylistBinding
-import com.zapperiptv.model.Playlist
+import com.amedeo.zapperiptv.R
+import com.amedeo.zapperiptv.databinding.ItemPlaylistBinding
+import com.amedeo.zapperiptv.model.Playlist
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale

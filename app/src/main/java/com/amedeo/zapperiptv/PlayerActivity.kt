@@ -1,4 +1,4 @@
-package com.zapperiptv
+package com.amedeo.zapperiptv
 
 import android.os.Bundle
 import android.util.Log
@@ -16,14 +16,14 @@ import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.extractor.DefaultExtractorsFactory
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.zapperiptv.databinding.ActivityPlayerBinding
-import com.zapperiptv.model.PlaybackState
-import com.zapperiptv.player.MediaSourceHelper
-import com.zapperiptv.ui.ChannelListAdapter
-import com.zapperiptv.ui.ImageLoader
-import com.zapperiptv.ui.SettingsDialogFragment
-import com.zapperiptv.ui.gesture.SwipeGestureHandler
-import com.zapperiptv.viewmodel.MainViewModel
+import com.amedeo.zapperiptv.databinding.ActivityPlayerBinding
+import com.amedeo.zapperiptv.model.PlaybackState
+import com.amedeo.zapperiptv.player.MediaSourceHelper
+import com.amedeo.zapperiptv.ui.ChannelListAdapter
+import com.amedeo.zapperiptv.ui.ImageLoader
+import com.amedeo.zapperiptv.ui.SettingsDialogFragment
+import com.amedeo.zapperiptv.ui.gesture.SwipeGestureHandler
+import com.amedeo.zapperiptv.viewmodel.MainViewModel
 
 @androidx.media3.common.util.UnstableApi
 class PlayerActivity : AppCompatActivity() {

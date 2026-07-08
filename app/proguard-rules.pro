@@ -1,7 +1,7 @@
 # Proguard/R8 rules for ZapperIPTV
 
 # Keep model classes (used by Gson reflection)
--keep class com.zapperiptv.model.** { *; }
+-keep class com.amedeo.zapperiptv.model.** { *; }
 
 # Keep Gson type information
 -keepattributes Signature
@@ -15,7 +15,7 @@
 -dontwarn androidx.media3.**
 
 # Keep ViewBinding generated classes
--keep class com.zapperiptv.databinding.** { *; }
+-keep class com.amedeo.zapperiptv.databinding.** { *; }
 
 # Keep coroutines
 -keepnames class kotlinx.coroutines.internal.MainDispatcherFactory {}

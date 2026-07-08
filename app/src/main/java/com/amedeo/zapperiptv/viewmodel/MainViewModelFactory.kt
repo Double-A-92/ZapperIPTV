@@ -1,9 +1,9 @@
-package com.zapperiptv.viewmodel
+package com.amedeo.zapperiptv.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.zapperiptv.repository.PlaylistRepository
-import com.zapperiptv.storage.PreferencesManager
+import com.amedeo.zapperiptv.repository.PlaylistRepository
+import com.amedeo.zapperiptv.storage.PreferencesManager
 
 class MainViewModelFactory(
     private val repository: PlaylistRepository,

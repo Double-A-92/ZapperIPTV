@@ -1,7 +1,7 @@
-package com.zapperiptv.parser
+package com.amedeo.zapperiptv.parser
 
 import android.util.Log
-import com.zapperiptv.model.Channel
+import com.amedeo.zapperiptv.model.Channel
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStream

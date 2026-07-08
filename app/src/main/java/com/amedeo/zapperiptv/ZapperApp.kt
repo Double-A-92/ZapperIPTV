@@ -1,12 +1,12 @@
-package com.zapperiptv
+package com.amedeo.zapperiptv
 
 import android.app.Application
-import com.zapperiptv.network.PlaylistDownloader
-import com.zapperiptv.parser.M3uParser
-import com.zapperiptv.repository.PlaylistRepository
-import com.zapperiptv.storage.PreferencesManager
-import com.zapperiptv.ui.ImageLoader
-import com.zapperiptv.viewmodel.MainViewModelFactory
+import com.amedeo.zapperiptv.network.PlaylistDownloader
+import com.amedeo.zapperiptv.parser.M3uParser
+import com.amedeo.zapperiptv.repository.PlaylistRepository
+import com.amedeo.zapperiptv.storage.PreferencesManager
+import com.amedeo.zapperiptv.ui.ImageLoader
+import com.amedeo.zapperiptv.viewmodel.MainViewModelFactory
 
 class ZapperApp : Application() {
     lateinit var preferencesManager: PreferencesManager

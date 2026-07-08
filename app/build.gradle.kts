@@ -5,10 +5,10 @@ plugins {
 }
 
 android {
-    namespace = "com.zapperiptv"
+    namespace = "com.amedeo.zapperiptv"
     compileSdk = 35
     defaultConfig {
-        applicationId = "com.zapperiptv"
+        applicationId = "com.amedeo.zapperiptv"
         minSdk = 21
         targetSdk = 35
         versionCode = 1

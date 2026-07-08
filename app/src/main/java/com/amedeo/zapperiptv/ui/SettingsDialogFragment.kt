@@ -1,4 +1,4 @@
-package com.zapperiptv.ui
+package com.amedeo.zapperiptv.ui
 
 import android.app.Dialog
 import android.graphics.Color
@@ -12,10 +12,10 @@ import androidx.fragment.app.DialogFragment
 import androidx.fragment.app.activityViewModels
 import androidx.lifecycle.Observer
 import androidx.recyclerview.widget.LinearLayoutManager
-import com.zapperiptv.R
-import com.zapperiptv.databinding.DialogSettingsBinding
-import com.zapperiptv.model.Playlist
-import com.zapperiptv.viewmodel.MainViewModel
+import com.amedeo.zapperiptv.R
+import com.amedeo.zapperiptv.databinding.DialogSettingsBinding
+import com.amedeo.zapperiptv.model.Playlist
+import com.amedeo.zapperiptv.viewmodel.MainViewModel
 
 class SettingsDialogFragment : DialogFragment() {
     companion object {

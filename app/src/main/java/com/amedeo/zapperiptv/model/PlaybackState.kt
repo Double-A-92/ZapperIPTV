@@ -1,4 +1,4 @@
-package com.zapperiptv.model
+package com.amedeo.zapperiptv.model
 
 sealed class PlaybackState {
     object Idle : PlaybackState()

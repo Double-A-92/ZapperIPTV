@@ -1,4 +1,4 @@
-package com.zapperiptv.network
+package com.amedeo.zapperiptv.network
 
 import android.content.Context
 import android.util.Log

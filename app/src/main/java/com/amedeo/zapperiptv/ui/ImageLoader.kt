@@ -1,11 +1,11 @@
-package com.zapperiptv.ui
+package com.amedeo.zapperiptv.ui
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Log
 import android.util.LruCache
 import android.widget.ImageView
-import com.zapperiptv.R
+import com.amedeo.zapperiptv.R
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job

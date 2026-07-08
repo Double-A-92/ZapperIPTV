@@ -1,4 +1,4 @@
-package com.zapperiptv.viewmodel
+package com.amedeo.zapperiptv.viewmodel
 
 import android.os.Handler
 import android.os.Looper
@@ -7,12 +7,12 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.zapperiptv.R
-import com.zapperiptv.model.Channel
-import com.zapperiptv.model.PlaybackState
-import com.zapperiptv.model.Playlist
-import com.zapperiptv.repository.PlaylistRepository
-import com.zapperiptv.storage.PreferencesManager
+import com.amedeo.zapperiptv.R
+import com.amedeo.zapperiptv.model.Channel
+import com.amedeo.zapperiptv.model.PlaybackState
+import com.amedeo.zapperiptv.model.Playlist
+import com.amedeo.zapperiptv.repository.PlaylistRepository
+import com.amedeo.zapperiptv.storage.PreferencesManager
 import kotlinx.coroutines.launch
 
 class MainViewModel(

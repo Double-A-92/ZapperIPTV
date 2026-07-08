@@ -1,4 +1,4 @@
-package com.zapperiptv.ui.gesture
+package com.amedeo.zapperiptv.ui.gesture
 
 import android.content.Context
 import android.view.GestureDetector

@@ -1,4 +1,4 @@
-package com.zapperiptv.model
+package com.amedeo.zapperiptv.model
 
 data class Channel(
     val name: String,

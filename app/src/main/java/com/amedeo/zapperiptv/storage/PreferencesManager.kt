@@ -1,4 +1,4 @@
-package com.zapperiptv.storage
+package com.amedeo.zapperiptv.storage
 
 import android.content.Context
 import android.content.SharedPreferences
@@ -6,7 +6,7 @@ import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.JsonSyntaxException
 import com.google.gson.reflect.TypeToken
-import com.zapperiptv.model.Playlist
+import com.amedeo.zapperiptv.model.Playlist
 
 class PreferencesManager(
     context: Context,

@@ -1,4 +1,4 @@
-package com.zapperiptv.ui
+package com.amedeo.zapperiptv.ui
 
 import android.view.LayoutInflater
 import android.view.ViewGroup
@@ -6,9 +6,9 @@ import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.zapperiptv.R
-import com.zapperiptv.databinding.ItemChannelBinding
-import com.zapperiptv.model.Channel
+import com.amedeo.zapperiptv.R
+import com.amedeo.zapperiptv.databinding.ItemChannelBinding
+import com.amedeo.zapperiptv.model.Channel
 
 class ChannelListAdapter(
     private val onChannelSelected: (Int) -> Unit,
