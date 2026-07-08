@@ -1,0 +1,31 @@
+<resources>
+    <string name="app_name">ZapperIPTV</string>
+    <string name="welcome_message">ZapperIPTV</string>
+    <string name="welcome_instruction">Удерживайте [OK], чтобы добавить плейлист</string>
+    <string name="no_channels_available">Нет доступных каналов.</string>
+    <string name="check_playlist_configuration">Пожалуйста, проверьте конфигурацию плейлиста в Настройках.</string>
+    <string name="settings">Настройки</string>
+    <string name="add_url_playlist">Добавить плейлист</string>
+    <string name="edit_playlist">Редактировать плейлист</string>
+    <string name="reload_all">Перезагрузить все</string>
+    <string name="playlist_name">Название плейлиста</string>
+    <string name="playlist_url">URL плейлиста</string>
+    <string name="save">Сохранить</string>
+    <string name="cancel">Отмена</string>
+    <string name="file">ФАЙЛ</string>
+    <string name="delete">Удалить</string>
+    <string name="playlists">Плейлисты</string>
+    <string name="add_url">Добавить</string>
+    <string name="reload">Перезагрузить</string>
+    <string name="empty_playlists_message">Плейлисты еще не добавлены.\nВыберите «Добавить», чтобы начать.</string>
+    <string name="playlist_last_updated">Последнее обновление: %s</string>
+    <string name="playlist_never_updated">Никогда не обновлялось</string>
+    <string name="error_invalid_url">Неверный URL</string>
+    <string name="error_empty_name">Имя не может быть пустым</string>
+    <string name="error_all_channels_failed">Не удалось воспроизвести ни один канал.</string>
+    <string name="error_unknown">Неизвестная ошибка</string>
+    <string name="channel_unknown">Неизвестный канал</string>
+    <string name="channel_default_name">Канал %d</string>
+    <string name="group_other">Другое</string>
+    <string name="press_back_again_to_exit">Нажмите «Назад» еще раз, чтобы выйти</string>
+</resources>

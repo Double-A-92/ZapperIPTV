@@ -1,0 +1,31 @@
+<resources>
+    <string name="app_name">ZapperIPTV</string>
+    <string name="welcome_message">ZapperIPTV</string>
+    <string name="welcome_instruction">प्लेलिस्ट जोड़ने के लिए [OK] को देर तक दबाएं</string>
+    <string name="no_channels_available">कोई चैनल उपलब्ध नहीं है।</string>
+    <string name="check_playlist_configuration">कृपया सेटिंग्स में अपनी प्लेलिस्ट कॉन्फ़िगरेशन जांचें।</string>
+    <string name="settings">सेटिंग्स</string>
+    <string name="add_url_playlist">प्लेलिस्ट जोड़ें</string>
+    <string name="edit_playlist">प्लेलिस्ट संपादित करें</string>
+    <string name="reload_all">सभी को पुनः लोड करें</string>
+    <string name="playlist_name">प्लेलिस्ट का नाम</string>
+    <string name="playlist_url">प्लेलिस्ट URL</string>
+    <string name="save">सहेजें</string>
+    <string name="cancel">रद्द करें</string>
+    <string name="file">फ़ाइल</string>
+    <string name="delete">हटाएं</string>
+    <string name="playlists">प्लेलिस्ट्स</string>
+    <string name="add_url">जोड़ें</string>
+    <string name="reload">पुनः लोड करें</string>
+    <string name="empty_playlists_message">अभी तक कोई प्लेलिस्ट नहीं जोड़ी गई है।\nशुरू करने के लिए \'जोड़ें\' चुनें।</string>
+    <string name="playlist_last_updated">अंतिम अपडेट: %s</string>
+    <string name="playlist_never_updated">कभी अपडेट नहीं किया गया</string>
+    <string name="error_invalid_url">अमान्य URL</string>
+    <string name="error_empty_name">नाम खाली नहीं हो सकता</string>
+    <string name="error_all_channels_failed">सभी चैनल चलाने में विफल रहे।</string>
+    <string name="error_unknown">अज्ञात त्रुटि</string>
+    <string name="channel_unknown">अज्ञात चैनल</string>
+    <string name="channel_default_name">चैनल %d</string>
+    <string name="group_other">अन्य</string>
+    <string name="press_back_again_to_exit">बाहर निकलने के लिए फिर से वापस दबाएं</string>
+</resources>

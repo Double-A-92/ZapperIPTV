@@ -1,0 +1,31 @@
+<resources>
+    <string name="app_name">ZapperIPTV</string>
+    <string name="welcome_message">ZapperIPTV</string>
+    <string name="welcome_instruction">Appui long sur [OK] pour ajouter une playlist</string>
+    <string name="no_channels_available">Aucun canal disponible.</string>
+    <string name="check_playlist_configuration">Veuillez vérifier la configuration de votre playlist dans les Paramètres.</string>
+    <string name="settings">Paramètres</string>
+    <string name="add_url_playlist">Ajouter une playlist</string>
+    <string name="edit_playlist">Modifier la playlist</string>
+    <string name="reload_all">Tout recharger</string>
+    <string name="playlist_name">Nom de la playlist</string>
+    <string name="playlist_url">URL de la playlist</string>
+    <string name="save">Enregistrer</string>
+    <string name="cancel">Annuler</string>
+    <string name="file">FICHIER</string>
+    <string name="delete">Supprimer</string>
+    <string name="playlists">Playlists</string>
+    <string name="add_url">Ajouter</string>
+    <string name="reload">Recharger</string>
+    <string name="empty_playlists_message">Aucune playlist ajoutée pour le moment.\nSélectionnez \'Ajouter\' pour commencer.</string>
+    <string name="playlist_last_updated">Dernière mise à jour : %s</string>
+    <string name="playlist_never_updated">Jamais mis à jour</string>
+    <string name="error_invalid_url">URL invalide</string>
+    <string name="error_empty_name">Le nom ne peut pas être vide</string>
+    <string name="error_all_channels_failed">Échec de la lecture de tous les canaux.</string>
+    <string name="error_unknown">Erreur inconnue</string>
+    <string name="channel_unknown">Canal inconnu</string>
+    <string name="channel_default_name">Canal %d</string>
+    <string name="group_other">Autre</string>
+    <string name="press_back_again_to_exit">Appuyez à nouveau sur retour pour quitter</string>
+</resources>
