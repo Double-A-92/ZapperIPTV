@@ -16,6 +16,9 @@ class ChannelListAdapter(
     companion object {
         private const val FOCUS_SCALE = 1.04f
         private const val ANIMATION_DURATION = 150L
+
+        // Use a large virtual count to simulate an infinite list.
+        private const val VIRTUAL_INFINITY = Int.MAX_VALUE / 2
     }
 
     private val indicatorColorResIds =
@@ -41,8 +44,47 @@ class ChannelListAdapter(
         holder: ChannelViewHolder,
         position: Int,
     ) {
-        val channel = getItem(position)
+        val size = currentList.size
+        if (size == 0) return
+
+        // Map the virtual position to the actual channel index
+        val actualPosition = position % size
+        val channel = getItem(actualPosition)
         holder.bind(channel)
+    }
+
+    override fun getItemCount(): Int {
+        val size = currentList.size
+        // Only loop if we have more than one channel
+        return if (size > 1) VIRTUAL_INFINITY else size
+    }
+
+    /**
+     * Maps a virtual adapter position to the actual list index.
+     */
+    fun getActualPosition(position: Int): Int {
+        val size = currentList.size
+        return if (size > 0) position % size else position
+    }
+
+    /**
+     * Calculates a starting position in the middle of the virtual list
+     * that aligns perfectly with the desired channel index.
+     */
+    fun getStartOffset(actualIndex: Int): Int {
+        val size = currentList.size
+        if (size <= 1) return actualIndex
+
+        val half = VIRTUAL_INFINITY / 2
+        // Ensure the offset is a perfect multiple of the list size
+        val offset = half - (half % size)
+        return offset + actualIndex
+    }
+
+    override fun onCurrentListChanged(previousList: List<Channel>, currentList: List<Channel>) {
+        super.onCurrentListChanged(previousList, currentList)
+        // Refresh the virtual list to ensure modulo calculations are updated
+        notifyDataSetChanged()
     }
 
     override fun onViewRecycled(holder: ChannelViewHolder) {
@@ -59,7 +101,7 @@ class ChannelListAdapter(
             binding.root.setOnClickListener {
                 val position = absoluteAdapterPosition
                 if (position != RecyclerView.NO_POSITION) {
-                    onChannelSelected(position)
+                    onChannelSelected(getActualPosition(position))
                 }
             }
 

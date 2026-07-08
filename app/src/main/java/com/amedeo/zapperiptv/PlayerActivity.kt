@@ -170,9 +170,10 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun focusCurrentChannel() {
         val currentIdx = viewModel.currentIndex.value ?: 0
-        binding.channelRecyclerView.scrollToPosition(currentIdx)
+        val targetPos = channelListAdapter.getStartOffset(currentIdx)
+        binding.channelRecyclerView.scrollToPosition(targetPos)
         binding.channelRecyclerView.post {
-            val view = binding.channelRecyclerView.layoutManager?.findViewByPosition(currentIdx)
+            val view = binding.channelRecyclerView.layoutManager?.findViewByPosition(targetPos)
             view?.requestFocus() ?: binding.channelRecyclerView.requestFocus()
         }
     }
