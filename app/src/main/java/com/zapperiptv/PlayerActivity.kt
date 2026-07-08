@@ -5,6 +5,7 @@ import android.util.Log
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
+import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.isVisible
@@ -38,6 +39,7 @@ class PlayerActivity : AppCompatActivity() {
 
     private lateinit var channelListAdapter: ChannelListAdapter
     private lateinit var swipeGestureHandler: SwipeGestureHandler
+    private var lastBackPressTime: Long = 0
 
     companion object {
         private const val TAG = "PlayerActivity"
@@ -315,7 +317,19 @@ class PlayerActivity : AppCompatActivity() {
                 // Fragment handles itself usually
             }
             binding.overlayContainer.isVisible -> viewModel.toggleOverlay()
-            else -> onBackPressedDispatcher.onBackPressed()
+            else -> {
+                val currentTime = System.currentTimeMillis()
+                if (currentTime - lastBackPressTime < 2000) {
+                    finish()
+                } else {
+                    lastBackPressTime = currentTime
+                    Toast.makeText(
+                        this,
+                        R.string.press_back_again_to_exit,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
         }
     }
 
