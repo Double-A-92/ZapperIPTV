@@ -6,13 +6,15 @@ plugins {
 
 android {
     namespace = "com.zapperiptv"
-    compileSdk = 36
+    compileSdk = 35
     defaultConfig {
         applicationId = "com.zapperiptv"
         minSdk = 21
         targetSdk = 35
         versionCode = 1
         versionName = "1.0"
+        multiDexEnabled = true
+        vectorDrawables.useSupportLibrary = true
     }
 
     buildTypes {
@@ -28,6 +30,7 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
+        isCoreLibraryDesugaringEnabled = true
     }
     buildFeatures {
         viewBinding = true
@@ -47,6 +50,7 @@ kotlin {
 }
 
 dependencies {
+    coreLibraryDesugaring(libs.desugar.jdk.libs)
     // Core Android dependencies
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.appcompat)

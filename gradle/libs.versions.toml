@@ -12,6 +12,7 @@ recyclerview = "1.3.2"
 gson = "2.11.0"
 ktlint = "14.2.0"
 detekt = "1.23.8"
+desugar_jdk_libs = "2.1.5"
 
 [libraries]
 androidx-core-ktx = { module = "androidx.core:core-ktx", version.ref = "androidxCore" }
@@ -32,6 +33,7 @@ androidx-media3-exoplayer-rtsp = { module = "androidx.media3:media3-exoplayer-rt
 
 androidx-recyclerview = { module = "androidx.recyclerview:recyclerview", version.ref = "recyclerview" }
 gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+desugar-jdk-libs = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugar_jdk_libs" }
 detektFormatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
 
 [plugins]
