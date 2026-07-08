@@ -59,8 +59,26 @@ class MainViewModel(
     private val attemptedIndicesInCycle = mutableSetOf<Int>()
     private var isRecovering = false
 
+    private var pendingChannelUrl: String? = null
+
     init {
         loadPlaylists()
+    }
+
+    fun setPendingChannelUrl(url: String?) {
+        val channels = _channels.value
+        if (channels != null && channels.isNotEmpty() && url != null) {
+            selectChannelByUrl(url, channels)
+        } else {
+            pendingChannelUrl = url
+        }
+    }
+
+    private fun selectChannelByUrl(url: String, channels: List<Channel>) {
+        val index = channels.indexOfFirst { it.streamUrl == url }
+        if (index != -1) {
+            selectChannel(index)
+        }
     }
 
     fun loadPlaylists(forceReload: Boolean = false) {
@@ -73,8 +91,14 @@ class MainViewModel(
             if (loadedChannels.isEmpty()) {
                 _currentChannel.value = null
                 _currentIndex.value = -1
-            } else if (_currentIndex.value == -1) {
-                restoreLastChannel(loadedChannels)
+            } else {
+                val pendingUrl = pendingChannelUrl
+                if (pendingUrl != null) {
+                    selectChannelByUrl(pendingUrl, loadedChannels)
+                    pendingChannelUrl = null
+                } else if (_currentIndex.value == -1) {
+                    restoreLastChannel(loadedChannels)
+                }
             }
         }
     }

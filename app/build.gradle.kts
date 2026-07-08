@@ -64,6 +64,7 @@ dependencies {
 
     // UI
     implementation(libs.androidx.recyclerview)
+    implementation(libs.androidx.tvprovider)
 
     // Media3 (ExoPlayer)
     implementation(libs.androidx.media3.exoplayer)

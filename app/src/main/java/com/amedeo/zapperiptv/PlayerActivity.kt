@@ -1,5 +1,6 @@
 package com.amedeo.zapperiptv
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.KeyEvent
@@ -41,10 +42,14 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var swipeGestureHandler: SwipeGestureHandler
     private var lastBackPressTime: Long = 0
 
+    private val watchNextHandler = android.os.Handler(android.os.Looper.getMainLooper())
+    private var watchNextRunnable: Runnable? = null
+
     companion object {
         private const val TAG = "PlayerActivity"
         private const val PREFETCH_COUNT = 20
         private const val CACHE_SIZE = 20
+        private const val WATCH_NEXT_DELAY_MS = 15 * 60 * 1000L // 15 minutes requirement
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,6 +60,19 @@ class PlayerActivity : AppCompatActivity() {
         setupRecyclerView()
         setupGestureHandler()
         observeViewModel()
+        handleIntent(intent)
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleIntent(intent)
+    }
+
+    private fun handleIntent(intent: Intent?) {
+        intent?.data?.toString()?.let { url ->
+            viewModel.setPendingChannelUrl(url)
+        }
     }
 
     private fun setupGestureHandler() {
@@ -186,9 +204,24 @@ class PlayerActivity : AppCompatActivity() {
             player.prepare()
             player.play()
         }
+
+        // Update Google TV Watch Next with delay
+        scheduleWatchNextUpdate()
+    }
+
+    private fun scheduleWatchNextUpdate() {
+        watchNextRunnable?.let { watchNextHandler.removeCallbacks(it) }
+        val channel = viewModel.currentChannel.value ?: return
+
+        watchNextRunnable = Runnable {
+            com.amedeo.zapperiptv.util.TvLauncherHelper.updateWatchNext(this, channel)
+        }.also {
+            watchNextHandler.postDelayed(it, WATCH_NEXT_DELAY_MS)
+        }
     }
 
     private fun stopStream() {
+        watchNextRunnable?.let { watchNextHandler.removeCallbacks(it) }
         exoPlayer?.stop()
         exoPlayer?.clearMediaItems()
         viewModel.setPlaybackState(PlaybackState.Idle)
