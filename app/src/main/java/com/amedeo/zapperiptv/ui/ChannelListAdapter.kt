@@ -24,9 +24,10 @@ class ChannelListAdapter(
     private val indicatorColorResIds =
         intArrayOf(
             R.color.channel_indicator_1,
+            R.color.channel_indicator_5,
             R.color.channel_indicator_2,
-            R.color.channel_indicator_3,
             R.color.channel_indicator_4,
+            R.color.channel_indicator_3,
         )
 
     private var indicatorColors: IntArray? = null
