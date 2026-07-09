@@ -31,22 +31,22 @@ class M3uParser {
     ): List<Channel> {
         val channels = mutableListOf<Channel>()
         try {
-            val reader = BufferedReader(InputStreamReader(inputStream, "UTF-8"))
-            var line = reader.readLine()
-            if (line != null && line.startsWith("\uFEFF")) line = line.substring(1)
+            BufferedReader(InputStreamReader(inputStream, "UTF-8")).use { reader ->
+                var line = reader.readLine()
+                if (line != null && line.startsWith("\uFEFF")) line = line.substring(1)
 
-            if (line == null || !line.trim().startsWith("#EXTM3U")) {
-                Log.w(TAG, "Not a valid M3U file, missing #EXTM3U header for $sourceId")
-                return channels
-            }
+                if (line == null || !line.trim().startsWith("#EXTM3U")) {
+                    Log.w(TAG, "Not a valid M3U file, missing #EXTM3U header for $sourceId")
+                    return channels
+                }
 
-            val state = ParseState()
-            line = reader.readLine()
-            while (line != null) {
-                processLine(line, state, channels, sourceId)
+                val state = ParseState()
                 line = reader.readLine()
+                while (line != null) {
+                    processLine(line, state, channels, sourceId)
+                    line = reader.readLine()
+                }
             }
-            reader.close()
         } catch (e: IOException) {
             Log.e(TAG, "IO error parsing M3U: ${e.message}", e)
         }

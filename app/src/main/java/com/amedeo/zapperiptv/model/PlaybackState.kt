@@ -1,11 +1,11 @@
 package com.amedeo.zapperiptv.model
 
 sealed class PlaybackState {
-    object Idle : PlaybackState()
+    data object Idle : PlaybackState()
 
-    object Loading : PlaybackState()
+    data object Loading : PlaybackState()
 
-    object Playing : PlaybackState()
+    data object Playing : PlaybackState()
 
     data class Error(
         val message: String,

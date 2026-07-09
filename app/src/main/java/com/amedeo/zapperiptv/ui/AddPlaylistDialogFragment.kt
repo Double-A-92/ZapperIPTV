@@ -133,9 +133,7 @@ class AddPlaylistDialogFragment : DialogFragment() {
         }
     }
 
-    private fun isValid(
-        url: String,
-    ): Boolean {
+    private fun isValid(url: String): Boolean {
         if (url.isEmpty()) return false
         return url.startsWith("http://") || url.startsWith("https://") || url.startsWith("content://")
     }

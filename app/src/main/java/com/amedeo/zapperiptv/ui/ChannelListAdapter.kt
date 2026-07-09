@@ -82,7 +82,10 @@ class ChannelListAdapter(
         return offset + actualIndex
     }
 
-    override fun onCurrentListChanged(previousList: List<Channel>, currentList: List<Channel>) {
+    override fun onCurrentListChanged(
+        previousList: List<Channel>,
+        currentList: List<Channel>,
+    ) {
         super.onCurrentListChanged(previousList, currentList)
         // Refresh the virtual list to ensure modulo calculations are updated
         notifyDataSetChanged()
@@ -132,6 +135,7 @@ class ChannelListAdapter(
                 sourceColorMap.getOrPut(channel.sourceId) {
                     colors[sourceColorMap.size % colors.size]
                 }
+
             ImageLoader.load(channel.logoUrl, binding.channelLogo, R.drawable.ic_placeholder_logo)
             binding.playlistIndicator.setTextColor(color)
         }

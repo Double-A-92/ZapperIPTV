@@ -74,7 +74,10 @@ class MainViewModel(
         }
     }
 
-    private fun selectChannelByUrl(url: String, channels: List<Channel>) {
+    private fun selectChannelByUrl(
+        url: String,
+        channels: List<Channel>,
+    ) {
         val index = channels.indexOfFirst { it.streamUrl == url }
         if (index != -1) {
             selectChannel(index)

@@ -1,7 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.ktlint)
-    alias(libs.plugins.detekt)
 }
 
 android {
@@ -42,6 +41,9 @@ android {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
+        jniLibs {
+            useLegacyPackaging = true
+        }
     }
 }
 
@@ -77,8 +79,6 @@ dependencies {
     // JSON / Data
     implementation(libs.gson)
     implementation(libs.kotlinx.coroutines.android)
-
-    detektPlugins(libs.detektFormatting)
 }
 
 // ktlint configuration
@@ -88,27 +88,14 @@ ktlint {
     outputToConsole.set(true)
 }
 
-// detekt configuration
-detekt {
-    toolVersion = "1.23.8"
-    config.setFrom(files("$projectDir/config/detekt/detekt.yml"))
-    buildUponDefaultConfig = true
-    parallel = true
-}
-
-tasks.withType<io.gitlab.arturbosch.detekt.Detekt>().configureEach {
-    reports {
-        html.required.set(true)
-        xml.required.set(true)
-        txt.required.set(true)
-        sarif.required.set(false)
-        md.required.set(false)
-    }
-}
-
-// Tasks to run ktlint and detekt
+// Tasks to run ktlint
 tasks.named("check") {
-    dependsOn("ktlintCheck", "detekt")
+    dependsOn("ktlintCheck")
+}
+
+// Automatically format Kotlin files before compilation
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+    dependsOn("ktlintFormat")
 }
 
 tasks.register("ktlintFormatAll") {

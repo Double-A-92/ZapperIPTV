@@ -47,7 +47,11 @@ class PlaylistAdapter(
 
             val statusText =
                 if (playlist.lastUpdated > 0L) {
-                    binding.root.context.getString(R.string.playlist_last_updated, dateFormat.format(Date(playlist.lastUpdated)))
+                    binding.root.context
+                        .getString(
+                            R.string.playlist_last_updated,
+                            dateFormat.format(Date(playlist.lastUpdated)),
+                        )
                 } else {
                     binding.root.context.getString(R.string.playlist_never_updated)
                 }
