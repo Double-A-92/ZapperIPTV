@@ -61,6 +61,9 @@ class PlayerActivity : AppCompatActivity() {
         setupGestureHandler()
         observeViewModel()
         handleIntent(intent)
+
+        // Ensure the Preview Channel exists so the app appears in launcher settings
+        com.amedeo.zapperiptv.util.TvLauncherHelper.ensureDefaultChannelExists(this)
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -70,8 +73,15 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun handleIntent(intent: Intent?) {
-        intent?.data?.toString()?.let { url ->
-            viewModel.setPendingChannelUrl(url)
+        val data = intent?.data
+        if (data != null) {
+            if (data.scheme == "zapperiptv" && data.host == "play") {
+                data.getQueryParameter("url")?.let { url ->
+                    viewModel.setPendingChannelUrl(url)
+                }
+            } else {
+                viewModel.setPendingChannelUrl(data.toString())
+            }
         }
     }
 

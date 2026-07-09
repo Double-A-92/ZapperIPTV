@@ -28,4 +28,6 @@
     <string name="channel_default_name">Canal %d</string>
     <string name="group_other">Otros</string>
     <string name="press_back_again_to_exit">Pulsa atrás de nuevo para salir</string>
+    <string name="tv_launcher_program_description">Visto recientemente</string>
+    <string name="tv_launcher_channel_description">Canales vistos recientemente</string>
 </resources>
