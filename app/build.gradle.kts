@@ -3,6 +3,22 @@ plugins {
     alias(libs.plugins.ktlint)
 }
 
+// Use the passed property, fallback to "1.0.0" for normal builds
+val vName = project.findProperty("versionName") as String? ?: "1.0.0"
+
+// Auto-generate versionCode from versionName (e.g., 0.2 → 200)
+val vCode =
+    vName
+        .split(".")
+        .map { it.toIntOrNull() ?: 0 }
+        .let { parts ->
+            parts.let {
+                (it.getOrElse(0) { 0 }) * 10000 +
+                    (it.getOrElse(1) { 0 }) * 100 +
+                    (it.getOrElse(2) { 0 })
+            }
+        }
+
 android {
     namespace = "com.amedeo.zapperiptv"
     compileSdk = 35
@@ -10,14 +26,32 @@ android {
         applicationId = "com.amedeo.zapperiptv"
         minSdk = 21
         targetSdk = 35
-        versionCode = 1
-        versionName = "1.0"
+        versionName = vName
+        versionCode = vCode
         multiDexEnabled = true
         vectorDrawables.useSupportLibrary = true
     }
 
+    // --- Conditional signing config (only used when environment variables exist) ---
+    signingConfigs {
+        val keystorePath = System.getenv("KEYSTORE_FILE_PATH")
+        if (keystorePath != null) {
+            create("ciRelease") {
+                storeFile = file(keystorePath)
+                storePassword = System.getenv("KEYSTORE_PASSWORD")
+                keyAlias = System.getenv("KEY_ALIAS")
+                keyPassword = System.getenv("KEY_PASSWORD")
+            }
+        }
+    }
+
     buildTypes {
         release {
+            // Use the CI signing config if available, otherwise leave unsigned
+            signingConfigs.findByName("ciRelease")?.let {
+                signingConfig = it
+            }
+
             isMinifyEnabled = true
             isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
