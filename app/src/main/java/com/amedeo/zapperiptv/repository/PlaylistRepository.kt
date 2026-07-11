@@ -22,6 +22,7 @@ class PlaylistRepository(
 ) {
     companion object {
         private const val TAG = "PlaylistRepository"
+        private const val STALE_AFTER_MS = 24 * 60 * 60 * 1000L // 24 hours
     }
 
     fun getPlaylists(): List<Playlist> = preferencesManager.loadPlaylists()
@@ -93,22 +94,34 @@ class PlaylistRepository(
         playlist: Playlist,
         forceReload: Boolean,
     ): List<Channel> {
-        var channels: List<Channel>? = null
-        if (forceReload || playlist.lastUpdated == 0L) {
-            channels = downloadAndParse(playlist)
+        val shouldRefresh = forceReload || isStale(playlist.lastUpdated)
+
+        if (shouldRefresh) {
+            // Attempt a fresh download; on success return immediately.
+            downloadAndParse(playlist)?.let { return it }
+            // Refresh failed: serve the previous cache if present, otherwise give up.
+            return playlistDownloader
+                .getCached(playlist.id)
+                ?.let { m3uParser.parse(it, playlist.id) }
+                .orEmpty()
         }
 
-        if (channels == null) {
-            val cachedStream = playlistDownloader.getCached(playlist.id)
-            if (cachedStream != null) {
-                channels = m3uParser.parse(cachedStream, playlist.id)
-            } else if (playlist.lastUpdated > 0L) {
-                channels = downloadAndParse(playlist)
-            }
+        // Playlist is still fresh: serve the cached copy. If the cache is missing
+        // for a known playlist, fetch once so we don't return an empty list.
+        val cachedStream = playlistDownloader.getCached(playlist.id)
+        if (cachedStream != null) {
+            return m3uParser.parse(cachedStream, playlist.id)
         }
-
-        return channels ?: emptyList()
+        return if (playlist.lastUpdated > 0L) {
+            downloadAndParse(playlist).orEmpty()
+        } else {
+            emptyList()
+        }
     }
+
+    private fun isStale(lastUpdated: Long): Boolean =
+        lastUpdated == 0L ||
+            (System.currentTimeMillis() - lastUpdated) > STALE_AFTER_MS
 
     private suspend fun downloadAndParse(playlist: Playlist): List<Channel>? =
         try {
