@@ -15,6 +15,7 @@ class M3uParser {
         private val TVG_LOGO_PATTERN = Pattern.compile("tvg-logo=\"(.*?)\"")
         private val TVG_GROUP_PATTERN = Pattern.compile("group-title=\"(.*?)\"")
         private val TVG_CHNO_PATTERN = Pattern.compile("tvg-chno=\"(.*?)\"")
+        private val TVG_ID_PATTERN = Pattern.compile("tvg-id=\"(.*?)\"")
     }
 
     private data class ParseState(
@@ -22,6 +23,7 @@ class M3uParser {
         var currentTvgLogo: String? = null,
         var currentGroup: String? = null,
         var currentTvgChNo: Int? = null,
+        var currentTvgId: String? = null,
         var currentName: String = "",
     )
 
@@ -78,6 +80,7 @@ class M3uParser {
         state.currentTvgLogo = extractAttribute(TVG_LOGO_PATTERN, line)
         state.currentGroup = extractAttribute(TVG_GROUP_PATTERN, line)
         state.currentTvgChNo = extractAttribute(TVG_CHNO_PATTERN, line)?.toIntOrNull()
+        state.currentTvgId = extractAttribute(TVG_ID_PATTERN, line)
 
         val split = line.split(",")
         state.currentName = if (split.size > 1) split[1].trim() else "Unknown Channel"
@@ -100,6 +103,7 @@ class M3uParser {
                 sourceId = sourceId,
                 tvgName = state.currentTvgName,
                 tvgChNo = state.currentTvgChNo,
+                tvgId = state.currentTvgId,
                 displayNumber = state.currentTvgChNo ?: (channels.size + 1),
             ),
         )
@@ -107,6 +111,7 @@ class M3uParser {
         state.currentTvgLogo = null
         state.currentGroup = null
         state.currentTvgChNo = null
+        state.currentTvgId = null
         state.currentName = ""
     }
 

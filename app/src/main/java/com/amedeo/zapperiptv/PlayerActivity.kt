@@ -22,6 +22,7 @@ import androidx.media3.extractor.DefaultExtractorsFactory
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.amedeo.zapperiptv.databinding.ActivityPlayerBinding
+import com.amedeo.zapperiptv.model.CurrentProgrammeState
 import com.amedeo.zapperiptv.model.PlaybackState
 import com.amedeo.zapperiptv.player.MediaSourceHelper
 import com.amedeo.zapperiptv.ui.ChannelListAdapter
@@ -223,6 +224,10 @@ class PlayerActivity : AppCompatActivity() {
                 binding.errorPersistent.isVisible = false
             }
         }
+
+        viewModel.currentProgrammeState.observe(this) { state ->
+            updateOverlayProgramme(state)
+        }
     }
 
     private fun focusCurrentChannel() {
@@ -248,6 +253,25 @@ class PlayerActivity : AppCompatActivity() {
             startWelcomeAnimation()
         } else {
             stopWelcomeAnimation()
+        }
+    }
+
+    private fun updateOverlayProgramme(state: CurrentProgrammeState) {
+        val programme = state.programme
+        if (programme != null) {
+            binding.overlayProgrammeTitle.text = programme.title
+            binding.overlayProgrammeTitle.isVisible = true
+            val now = System.currentTimeMillis()
+            val duration = (programme.endMillis - programme.startMillis).coerceAtLeast(1L)
+            val progress =
+                ((now - programme.startMillis).toFloat() / duration * 1000)
+                    .toInt()
+                    .coerceIn(0, 1000)
+            binding.overlayTimeBar.progress = progress
+            binding.overlayTimeBar.isVisible = true
+        } else {
+            binding.overlayProgrammeTitle.isVisible = false
+            binding.overlayTimeBar.isVisible = false
         }
     }
 

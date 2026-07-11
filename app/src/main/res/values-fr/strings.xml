@@ -20,6 +20,8 @@
     <string name="empty_playlists_message">Aucune playlist ajoutée pour le moment.\nSélectionnez \'Ajouter\' pour commencer.</string>
     <string name="playlist_last_updated">Dernière mise à jour : %s</string>
     <string name="playlist_never_updated">Jamais mis à jour</string>
+    <string name="playlist_epg_url">URL EPG (optionnel)</string>
+    <string name="epg_indicator">EPG</string>
     <string name="error_invalid_url">URL invalide</string>
     <string name="error_empty_name">Le nom ne peut pas être vide</string>
     <string name="error_all_channels_failed">Échec de la lecture de tous les canaux.</string>

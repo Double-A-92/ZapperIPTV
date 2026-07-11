@@ -20,6 +20,8 @@
     <string name="empty_playlists_message">Плейлисты еще не добавлены.\nВыберите «Добавить», чтобы начать.</string>
     <string name="playlist_last_updated">Последнее обновление: %s</string>
     <string name="playlist_never_updated">Никогда не обновлялось</string>
+    <string name="playlist_epg_url">URL EPG (необязательно)</string>
+    <string name="epg_indicator">EPG</string>
     <string name="error_invalid_url">Неверный URL</string>
     <string name="error_empty_name">Имя не может быть пустым</string>
     <string name="error_all_channels_failed">Не удалось воспроизвести ни один канал.</string>

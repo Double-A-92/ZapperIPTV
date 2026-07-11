@@ -59,7 +59,7 @@ class SettingsDialogFragment : DialogFragment() {
             PlaylistAdapter(
                 onEdit = { playlist ->
                     AddPlaylistDialogFragment
-                        .newInstance(playlist.id, playlist.name, playlist.url)
+                        .newInstance(playlist.id, playlist.name, playlist.url, playlist.epgUrl)
                         .show(childFragmentManager, "EditPlaylist")
                 },
                 onDelete = { id -> viewModel.removePlaylist(id) },

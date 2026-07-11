@@ -42,11 +42,13 @@ class AddPlaylistDialogFragment : DialogFragment() {
         private const val ARG_ID = "arg_id"
         private const val ARG_NAME = "arg_name"
         private const val ARG_URL = "arg_url"
+        private const val ARG_EPG_URL = "arg_epg_url"
 
         fun newInstance(
             id: String? = null,
             name: String? = null,
             url: String? = null,
+            epgUrl: String? = null,
         ): AddPlaylistDialogFragment {
             val fragment = AddPlaylistDialogFragment()
             fragment.arguments =
@@ -54,6 +56,7 @@ class AddPlaylistDialogFragment : DialogFragment() {
                     putString(ARG_ID, id)
                     putString(ARG_NAME, name)
                     putString(ARG_URL, url)
+                    putString(ARG_EPG_URL, epgUrl)
                 }
             return fragment
         }
@@ -93,9 +96,11 @@ class AddPlaylistDialogFragment : DialogFragment() {
         val initialId = arguments?.getString(ARG_ID)
         val initialName = arguments?.getString(ARG_NAME)
         val initialUrl = arguments?.getString(ARG_URL)
+        val initialEpgUrl = arguments?.getString(ARG_EPG_URL)
 
         if (initialName != null) binding.inputName.setText(initialName)
         if (initialUrl != null) binding.inputUrl.setText(initialUrl)
+        if (initialEpgUrl != null) binding.inputEpgUrl.setText(initialEpgUrl)
         if (initialId != null) binding.dialogTitle.setText(R.string.edit_playlist)
 
         binding.btnBrowse.setOnClickListener {
@@ -113,6 +118,11 @@ class AddPlaylistDialogFragment : DialogFragment() {
                 binding.inputUrl.text
                     .toString()
                     .trim()
+            val epgUrl =
+                binding.inputEpgUrl.text
+                    .toString()
+                    .trim()
+                    .ifEmpty { null }
 
             if (name.isEmpty()) {
                 Toast.makeText(context, R.string.error_empty_name, Toast.LENGTH_SHORT).show()
@@ -124,10 +134,15 @@ class AddPlaylistDialogFragment : DialogFragment() {
                 return@setOnClickListener
             }
 
+            if (epgUrl != null && !isValid(epgUrl)) {
+                Toast.makeText(context, R.string.error_invalid_url, Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+
             if (initialId != null) {
-                viewModel.updatePlaylist(initialId, name, url)
+                viewModel.updatePlaylist(initialId, name, url, epgUrl)
             } else {
-                viewModel.addPlaylist(name, url)
+                viewModel.addPlaylist(name, url, epgUrl)
             }
             dismiss()
         }

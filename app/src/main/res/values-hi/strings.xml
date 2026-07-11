@@ -20,6 +20,8 @@
     <string name="empty_playlists_message">अभी तक कोई प्लेलिस्ट नहीं जोड़ी गई है।\nशुरू करने के लिए \'जोड़ें\' चुनें।</string>
     <string name="playlist_last_updated">अंतिम अपडेट: %s</string>
     <string name="playlist_never_updated">कभी अपडेट नहीं किया गया</string>
+    <string name="playlist_epg_url">EPG URL (वैकल्पिक)</string>
+    <string name="epg_indicator">EPG</string>
     <string name="error_invalid_url">अमान्य URL</string>
     <string name="error_empty_name">नाम खाली नहीं हो सकता</string>
     <string name="error_all_channels_failed">सभी चैनल चलाने में विफल रहे।</string>

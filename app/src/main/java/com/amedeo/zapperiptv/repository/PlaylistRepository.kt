@@ -4,8 +4,10 @@ import android.content.Context
 import android.net.Uri
 import android.util.Log
 import com.amedeo.zapperiptv.model.Channel
+import com.amedeo.zapperiptv.model.EpgProgramme
 import com.amedeo.zapperiptv.model.Playlist
 import com.amedeo.zapperiptv.network.PlaylistDownloader
+import com.amedeo.zapperiptv.parser.EpgParser
 import com.amedeo.zapperiptv.parser.M3uParser
 import com.amedeo.zapperiptv.storage.PreferencesManager
 import kotlinx.coroutines.Dispatchers
@@ -19,17 +21,21 @@ class PlaylistRepository(
     private val preferencesManager: PreferencesManager,
     private val playlistDownloader: PlaylistDownloader,
     private val m3uParser: M3uParser,
+    private val epgParser: EpgParser = EpgParser(),
 ) {
     companion object {
         private const val TAG = "PlaylistRepository"
         private const val STALE_AFTER_MS = 24 * 60 * 60 * 1000L // 24 hours
     }
 
+    private val epgCache = mutableMapOf<String, List<EpgProgramme>>()
+
     fun getPlaylists(): List<Playlist> = preferencesManager.loadPlaylists()
 
     fun addPlaylist(
         name: String,
         url: String,
+        epgUrl: String? = null,
     ) {
         val playlists = getPlaylists().toMutableList()
         val newPlaylist =
@@ -38,6 +44,7 @@ class PlaylistRepository(
                 name = name,
                 url = url,
                 lastUpdated = 0,
+                epgUrl = epgUrl,
             )
         playlists.add(newPlaylist)
         preferencesManager.savePlaylists(playlists)
@@ -154,4 +161,39 @@ class PlaylistRepository(
             Log.e(TAG, "Failed to read local playlist ${playlist.name}", e)
             emptyList()
         }
+
+    suspend fun loadEpg(forceReload: Boolean = false) {
+        withContext(Dispatchers.IO) {
+            val playlists = getPlaylists()
+            playlists.forEach { playlist ->
+                val epgUrl = playlist.epgUrl ?: return@forEach
+                try {
+                    val cacheFile =
+                        if (forceReload || playlist.lastUpdated == 0L) {
+                            playlistDownloader.downloadEpg(epgUrl, playlist.id)
+                        } else {
+                            playlistDownloader.getCachedEpg(playlist.id)
+                                ?: playlistDownloader.downloadEpg(epgUrl, playlist.id)
+                        }
+                    val programmes = epgParser.parse(cacheFile)
+                    epgCache.putAll(programmes)
+                    Log.d(TAG, "Loaded ${programmes.size} EPG channels for ${playlist.name}")
+                } catch (e: IOException) {
+                    Log.e(TAG, "Failed to load EPG for ${playlist.name}: ${e.message}", e)
+                }
+            }
+        }
+    }
+
+    fun getCurrentProgramme(tvgId: String?): EpgProgramme? {
+        if (tvgId == null) return null
+        val now = System.currentTimeMillis()
+        val list = epgCache[tvgId] ?: return null
+        for (programme in list) {
+            if (now in programme.startMillis until programme.endMillis) {
+                return programme
+            }
+        }
+        return null
+    }
 }

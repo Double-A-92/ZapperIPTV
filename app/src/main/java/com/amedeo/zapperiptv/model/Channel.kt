@@ -8,5 +8,6 @@ data class Channel(
     val sourceId: String, // playlist ID this channel came from
     val tvgName: String?,
     val tvgChNo: Int?, // channel number from M3U, nullable
+    val tvgId: String?,
     var displayNumber: Int = 0, // assigned after merge
 )

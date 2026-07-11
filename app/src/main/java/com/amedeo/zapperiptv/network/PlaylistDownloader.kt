@@ -18,6 +18,7 @@ class PlaylistDownloader(
         private const val TIMEOUT_MS = 10000
         private const val READ_TIMEOUT_MS = 15000
         private const val CACHE_DIR_NAME = "playlist_cache"
+        private const val EPG_CACHE_DIR_NAME = "epg_cache"
         private const val USER_AGENT =
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 " +
                 "(KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
@@ -25,6 +26,13 @@ class PlaylistDownloader(
 
     private val cacheDir =
         File(context.cacheDir, CACHE_DIR_NAME).apply {
+            if (!exists()) {
+                mkdirs()
+            }
+        }
+
+    private val epgCacheDir =
+        File(context.cacheDir, EPG_CACHE_DIR_NAME).apply {
             if (!exists()) {
                 mkdirs()
             }
@@ -68,6 +76,45 @@ class PlaylistDownloader(
 
     fun getCached(playlistId: String): InputStream? {
         val cacheFile = File(cacheDir, "$playlistId.m3u")
+        return if (cacheFile.exists()) FileInputStream(cacheFile) else null
+    }
+
+    fun downloadEpg(
+        urlString: String,
+        playlistId: String,
+    ): InputStream {
+        Log.d(TAG, "Downloading EPG for playlist $playlistId: $urlString")
+        val url = URL(urlString)
+        val connection = url.openConnection() as HttpURLConnection
+        connection.connectTimeout = TIMEOUT_MS
+        connection.readTimeout = READ_TIMEOUT_MS
+        connection.requestMethod = "GET"
+        connection.setRequestProperty("User-Agent", USER_AGENT)
+        connection.setRequestProperty("Accept", "*/*")
+
+        try {
+            connection.connect()
+            if (connection.responseCode != HttpURLConnection.HTTP_OK) {
+                throw IOException("HTTP Error: ${connection.responseCode}")
+            }
+
+            val cacheFile = File(epgCacheDir, "$playlistId.xml")
+            connection.inputStream.use { input ->
+                FileOutputStream(cacheFile).use { output ->
+                    input.copyTo(output)
+                }
+            }
+            return FileInputStream(cacheFile)
+        } catch (e: IOException) {
+            Log.e(TAG, "EPG download failed for $playlistId: ${e.message}", e)
+            throw e
+        } finally {
+            connection.disconnect()
+        }
+    }
+
+    fun getCachedEpg(playlistId: String): InputStream? {
+        val cacheFile = File(epgCacheDir, "$playlistId.xml")
         return if (cacheFile.exists()) FileInputStream(cacheFile) else null
     }
 }

@@ -1,6 +1,7 @@
 package com.amedeo.zapperiptv.ui
 
 import android.view.LayoutInflater
+import android.view.View
 import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
@@ -56,6 +57,19 @@ class PlaylistAdapter(
                     binding.root.context.getString(R.string.playlist_never_updated)
                 }
             binding.playlistStatus.text = statusText
+
+            binding.playlistEpgStatus.text =
+                if (playlist.epgUrl != null) {
+                    binding.root.context.getString(R.string.epg_indicator)
+                } else {
+                    ""
+                }
+            binding.playlistEpgStatus.visibility =
+                if (playlist.epgUrl != null) {
+                    View.VISIBLE
+                } else {
+                    View.GONE
+                }
 
             binding.btnEdit.setOnClickListener {
                 onEdit(playlist)

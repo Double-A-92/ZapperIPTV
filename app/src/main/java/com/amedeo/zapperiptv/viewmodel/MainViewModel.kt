@@ -9,6 +9,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.amedeo.zapperiptv.R
 import com.amedeo.zapperiptv.model.Channel
+import com.amedeo.zapperiptv.model.CurrentProgrammeState
 import com.amedeo.zapperiptv.model.PlaybackState
 import com.amedeo.zapperiptv.model.Playlist
 import com.amedeo.zapperiptv.repository.PlaylistRepository
@@ -24,6 +25,7 @@ class MainViewModel(
         private const val DEBOUNCE_DELAY_MS = 300L
         private const val OVERLAY_DELAY_MS = 3000L
         private const val ERROR_RECOVERY_DELAY_MS = 2000L
+        private const val EPG_TICK_INTERVAL_MS = 60 * 60 * 1000L
     }
 
     private val _channels = MutableLiveData<List<Channel>>(emptyList())
@@ -50,11 +52,19 @@ class MainViewModel(
     private val _playlists = MutableLiveData<List<Playlist>>(emptyList())
     val playlists: LiveData<List<Playlist>> = _playlists
 
+    private val _currentProgrammeState = MutableLiveData<CurrentProgrammeState>(CurrentProgrammeState(null))
+    val currentProgrammeState: LiveData<CurrentProgrammeState> = _currentProgrammeState
+
     private val handler = Handler(Looper.getMainLooper())
 
     private val playChannelRunnable = Runnable { executePlayChannel() }
     private val hideOverlayRunnable = Runnable { _showOverlay.value = false }
     private val errorRecoveryRunnable = Runnable { attemptErrorRecovery() }
+    private val epgTickRunnable =
+        Runnable {
+            updateCurrentProgramme()
+            startEpgTick()
+        }
 
     private val attemptedIndicesInCycle = mutableSetOf<Int>()
     private var isRecovering = false
@@ -89,6 +99,7 @@ class MainViewModel(
         viewModelScope.launch {
             _playlists.value = repository.getPlaylists()
             val loadedChannels = repository.loadChannels(forceReload)
+            repository.loadEpg(forceReload)
             _channels.value = loadedChannels
 
             if (loadedChannels.isEmpty()) {
@@ -103,6 +114,7 @@ class MainViewModel(
                     restoreLastChannel(loadedChannels)
                 }
             }
+            startEpgTick()
         }
     }
 
@@ -147,6 +159,7 @@ class MainViewModel(
     private fun setIndexDebounced(index: Int) {
         _currentIndex.value = index
         _currentChannel.value = _channels.value?.getOrNull(index)
+        updateCurrentProgramme()
         showOverlayTemporarily()
         handler.removeCallbacks(playChannelRunnable)
         handler.postDelayed(playChannelRunnable, DEBOUNCE_DELAY_MS)
@@ -155,6 +168,7 @@ class MainViewModel(
     private fun setIndexAndPlay(index: Int) {
         _currentIndex.value = index
         _currentChannel.value = _channels.value?.getOrNull(index)
+        updateCurrentProgramme()
         showOverlayTemporarily()
         handler.removeCallbacks(playChannelRunnable)
         executePlayChannel()
@@ -239,11 +253,33 @@ class MainViewModel(
         _showChannelList.value = visible
     }
 
+    private fun updateCurrentProgramme() {
+        val channel = _currentChannel.value
+        val programme =
+            if (channel != null) {
+                repository.getCurrentProgramme(channel.tvgId)
+            } else {
+                null
+            }
+        _currentProgrammeState.value = CurrentProgrammeState(programme)
+    }
+
+    private fun startEpgTick() {
+        handler.removeCallbacks(epgTickRunnable)
+        handler.post(epgTickRunnable)
+        handler.postDelayed(epgTickRunnable, EPG_TICK_INTERVAL_MS)
+    }
+
+    private fun stopEpgTick() {
+        handler.removeCallbacks(epgTickRunnable)
+    }
+
     fun addPlaylist(
         name: String,
         url: String,
+        epgUrl: String? = null,
     ) {
-        repository.addPlaylist(name, url)
+        repository.addPlaylist(name, url, epgUrl)
         loadPlaylists()
     }
 
@@ -251,11 +287,12 @@ class MainViewModel(
         id: String,
         name: String,
         url: String,
+        epgUrl: String? = null,
     ) {
         val playlists = repository.getPlaylists()
         val playlist = playlists.find { it.id == id }
         if (playlist != null) {
-            val updatedPlaylist = playlist.copy(name = name, url = url)
+            val updatedPlaylist = playlist.copy(name = name, url = url, epgUrl = epgUrl)
             repository.updatePlaylist(updatedPlaylist)
             loadPlaylists()
         }
@@ -269,5 +306,6 @@ class MainViewModel(
     override fun onCleared() {
         super.onCleared()
         handler.removeCallbacksAndMessages(null)
+        stopEpgTick()
     }
 }
