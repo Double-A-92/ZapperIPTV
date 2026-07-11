@@ -2,31 +2,31 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="500dp"
+    android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
     android:background="@color/background_secondary"
-    android:paddingBottom="32dp"
-    android:paddingStart="32dp"
-    android:paddingEnd="32dp">
+    android:paddingStart="24dp"
+    android:paddingEnd="24dp"
+    android:paddingBottom="24dp">
 
     <View
         android:layout_width="match_parent"
         android:layout_height="4dp"
         android:background="@color/accent_cyan"
-        android:layout_marginBottom="28dp"
-        android:layout_marginStart="-32dp"
-        android:layout_marginEnd="-32dp"/>
+        android:layout_marginStart="-24dp"
+        android:layout_marginEnd="-24dp"
+        android:layout_marginBottom="24dp" />
 
     <TextView
         android:id="@+id/dialog_title"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="@string/add_url_playlist"
-        android:textSize="28sp"
+        android:textSize="22sp"
         android:textColor="@color/text_primary"
         android:textStyle="bold"
-        android:layout_marginBottom="24dp" />
+        android:layout_marginBottom="20dp" />
 
     <EditText
         android:id="@+id/input_name"
@@ -35,19 +35,19 @@
         android:hint="@string/playlist_name"
         android:textColor="@color/text_primary"
         android:textColorHint="@color/text_secondary"
-        android:textSize="20sp"
-        android:padding="16dp"
+        android:textSize="16sp"
+        android:padding="14dp"
         android:background="@color/background_primary"
         android:maxLines="1"
         android:imeOptions="actionNext"
         android:nextFocusDown="@+id/input_url"
-        android:layout_marginBottom="16dp" />
+        android:layout_marginBottom="12dp" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_marginBottom="16dp"
+        android:layout_marginBottom="12dp"
         android:gravity="center_vertical">
 
         <EditText
@@ -58,8 +58,8 @@
             android:hint="@string/playlist_url"
             android:textColor="@color/text_primary"
             android:textColorHint="@color/text_secondary"
-            android:textSize="20sp"
-            android:padding="16dp"
+            android:textSize="16sp"
+            android:padding="14dp"
             android:background="@color/background_primary"
             android:maxLines="1"
             android:inputType="textUri"
@@ -69,16 +69,16 @@
 
         <ImageView
             android:id="@+id/btn_browse"
-            android:layout_width="60dp"
-            android:layout_height="59dp"
-
+            android:layout_width="52dp"
+            android:layout_height="52dp"
+            android:layout_marginStart="12dp"
             android:background="@drawable/bg_button_cyan"
             android:clickable="true"
             android:contentDescription="@string/file"
             android:focusable="true"
             android:nextFocusLeft="@+id/input_url"
             android:nextFocusDown="@+id/input_epg_url"
-            android:padding="16dp"
+            android:padding="14dp"
             android:src="@drawable/ic_folder"
             app:tint="@color/text_button_cyan" />
     </LinearLayout>
@@ -90,8 +90,8 @@
         android:hint="@string/playlist_epg_url"
         android:textColor="@color/text_primary"
         android:textColorHint="@color/text_secondary"
-        android:textSize="20sp"
-        android:padding="16dp"
+        android:textSize="16sp"
+        android:padding="14dp"
         android:background="@color/background_primary"
         android:maxLines="1"
         android:inputType="textUri"
@@ -99,36 +99,37 @@
         android:nextFocusUp="@+id/btn_browse"
         android:nextFocusDown="@+id/btn_save"
         tools:text="http://example.com/epg.xml"
-        android:layout_marginBottom="16dp" />
+        android:layout_marginBottom="20dp" />
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="end">
+        android:orientation="horizontal">
 
         <TextView
             android:id="@+id/btn_cancel"
-            android:layout_width="140dp"
-            android:layout_height="50dp"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
             android:text="@string/cancel"
             android:gravity="center"
-            android:textSize="18sp"
+            android:textSize="16sp"
             android:textColor="@color/text_button_cyan"
             android:background="@drawable/bg_button_cyan"
             android:focusable="true"
             android:clickable="true"
             android:nextFocusUp="@+id/input_epg_url"
             android:nextFocusRight="@+id/btn_save"
-            android:layout_marginEnd="16dp" />
+            android:layout_marginEnd="12dp" />
 
         <TextView
             android:id="@+id/btn_save"
-            android:layout_width="140dp"
-            android:layout_height="50dp"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_weight="1"
             android:text="@string/save"
             android:gravity="center"
-            android:textSize="18sp"
+            android:textSize="16sp"
             android:textColor="@color/text_button_cyan"
             android:textStyle="bold"
             android:background="@drawable/bg_button_cyan"

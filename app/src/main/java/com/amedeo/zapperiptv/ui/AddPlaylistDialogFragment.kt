@@ -39,6 +39,9 @@ class AddPlaylistDialogFragment : DialogFragment() {
         }
 
     companion object {
+        private const val DIALOG_WIDTH_MAX_DP = 600
+        private const val DIALOG_WIDTH_RATIO = 0.85f
+
         private const val ARG_ID = "arg_id"
         private const val ARG_NAME = "arg_name"
         private const val ARG_URL = "arg_url"
@@ -81,8 +84,10 @@ class AddPlaylistDialogFragment : DialogFragment() {
     override fun onStart() {
         super.onStart()
         dialog?.window?.let { window ->
+            val screenWidth = resources.displayMetrics.widthPixels
             val density = resources.displayMetrics.density
-            val width = (500 * density).toInt() // Match the 500dp from XML
+            val maxWidth = (DIALOG_WIDTH_MAX_DP * density).toInt()
+            val width = (screenWidth * DIALOG_WIDTH_RATIO).toInt().coerceAtMost(maxWidth)
             window.setLayout(width, ViewGroup.LayoutParams.WRAP_CONTENT)
         }
     }
