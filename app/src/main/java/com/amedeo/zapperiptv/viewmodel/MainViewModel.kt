@@ -168,34 +168,79 @@ class MainViewModel(
 
     fun loadPlaylists(forceReload: Boolean = false) {
         _errorMessage.value = null
+
+        // Phase 1: show the cached channel list immediately so the UI is
+        // usable without waiting for the (slow) remote refresh to finish.
+        viewModelScope.launch {
+            _playlists.value = repository.getPlaylists()
+            validateSelectedPlaylist()
+            updateSelectedPlaylistLabel()
+
+            if (_channels.value.isNullOrEmpty()) {
+                val cached = repository.getCachedChannels()
+                if (cached.isNotEmpty()) {
+                    _channels.value = cached
+                    resumeChannelSelection(cached)
+                }
+            }
+        }
+
+        // Phase 2: refresh playlists and channels from the network in the
+        // background, then swap in the fresh data once it is ready.
         viewModelScope.launch {
             _playlists.value = repository.getPlaylists()
             val loadedChannels = repository.loadChannels(forceReload)
             repository.loadEpg(forceReload)
             _channels.value = loadedChannels
-
-            val currentSelectedId = _selectedPlaylistId.value
-            val playlistIds = _playlists.value.orEmpty().map { it.id }
-            if (currentSelectedId != null && !playlistIds.contains(currentSelectedId)) {
-                _selectedPlaylistId.value = null
-                preferencesManager.saveLastSelectedPlaylist(null)
-                preferencesManager.removePlaylistCursorsForPlaylist(currentSelectedId)
-            }
+            validateSelectedPlaylist()
             updateSelectedPlaylistLabel()
-
-            if (loadedChannels.isEmpty()) {
-                _currentChannel.value = null
-                _currentIndex.value = -1
-            } else {
-                val pendingUrl = pendingChannelUrl
-                if (pendingUrl != null) {
-                    selectChannelByUrl(pendingUrl, loadedChannels)
-                    pendingChannelUrl = null
-                } else if (_currentIndex.value == -1) {
-                    restoreLastChannel(loadedChannels)
-                }
-            }
+            resumeChannelSelection(loadedChannels)
             startEpgTick()
+        }
+    }
+
+    private fun validateSelectedPlaylist() {
+        val currentSelectedId = _selectedPlaylistId.value
+        val playlistIds = _playlists.value.orEmpty().map { it.id }
+        if (currentSelectedId != null && !playlistIds.contains(currentSelectedId)) {
+            _selectedPlaylistId.value = null
+            preferencesManager.saveLastSelectedPlaylist(null)
+            preferencesManager.removePlaylistCursorsForPlaylist(currentSelectedId)
+        }
+    }
+
+    private fun resumeChannelSelection(channels: List<Channel>) {
+        if (channels.isEmpty()) {
+            _currentChannel.value = null
+            _currentIndex.value = -1
+            return
+        }
+
+        val pendingUrl = pendingChannelUrl
+        if (pendingUrl != null) {
+            selectChannelByUrl(pendingUrl, channels)
+            pendingChannelUrl = null
+            return
+        }
+
+        val playing = _currentChannel.value
+        if (playing != null) {
+            // Keep the currently playing channel, only re-sync its index in
+            // case the refreshed list reordered it.
+            val idx =
+                channels.indexOfFirst {
+                    it.streamUrl == playing.streamUrl && it.sourceId == playing.sourceId
+                }
+            if (idx != -1) {
+                _currentIndex.value = idx
+            } else {
+                restoreLastChannel(channels)
+            }
+            return
+        }
+
+        if (_currentIndex.value == -1) {
+            restoreLastChannel(channels)
         }
     }
 

@@ -83,6 +83,33 @@ class PlaylistRepository(
             allChannels
         }
 
+    /**
+     * Returns the channels available from the local cache (and local file
+     * playlists) without any network access. Used to populate the UI
+     * instantly on startup while a background refresh is still in flight.
+     */
+    suspend fun getCachedChannels(): List<Channel> =
+        withContext(Dispatchers.IO) {
+            val playlists = getPlaylists()
+            val allChannels = mutableListOf<Channel>()
+            var globalChannelIndex = 1
+
+            for (playlist in playlists) {
+                val channels =
+                    if (playlist.url.startsWith("http")) {
+                        readCachedChannels(playlist)
+                    } else {
+                        runCatching { loadLocalPlaylist(playlist) }.getOrNull()
+                    } ?: continue
+
+                channels.forEach { channel ->
+                    channel.displayNumber = channel.tvgChNo ?: globalChannelIndex++
+                }
+                allChannels.addAll(channels)
+            }
+            allChannels
+        }
+
     private suspend fun loadPlaylistChannels(
         playlist: Playlist,
         forceReload: Boolean,
