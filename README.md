@@ -1,9 +1,11 @@
 # ZapperIPTV
 
-[![Download APK](https://img.shields.io/badge/Download-Latest%20APK-blue?style=for-the-badge&logo=android)](https://github.com/Double-A-92/ZapperIPTV/releases/latest/download/app-release.apk)
 
 ZapperIPTV is a straightforward IPTV player built for Android TV. The goal is to keep things simple and fast,
 focusing on a basic channel-surfing experience.
+
+[![Download APK](https://img.shields.io/badge/Download-Latest%20APK-blue?style=for-the-badge&logo=android)](https://github.com/Double-A-92/ZapperIPTV/releases/latest/download/app-release.apk)
+[![Downloader Code](https://img.shields.io/badge/5853864-blue?style=for-the-badge&logo=deepgram&logoColor=white&labelColor=F37623&color=gray)](https://play.google.com/store/apps/details?id=com.esaba.downloader)
 
 ## How it works
 
