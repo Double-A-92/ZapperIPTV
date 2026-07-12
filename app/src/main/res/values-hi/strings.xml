@@ -32,4 +32,7 @@
     <string name="press_back_again_to_exit">बाहर निकलने के लिए फिर से वापस दबाएं</string>
     <string name="tv_launcher_program_description">हाल ही में देखा गया</string>
     <string name="tv_launcher_channel_description">हाल ही में देखे गए चैनल</string>
+    <string name="all_playlists">सभी</string>
+    <string name="playlist_prev">पिछली प्लेलिस्ट</string>
+    <string name="playlist_next">अगली प्लेलिस्ट</string>
 </resources>

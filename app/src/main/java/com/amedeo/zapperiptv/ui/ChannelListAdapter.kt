@@ -11,7 +11,8 @@ import com.amedeo.zapperiptv.databinding.ItemChannelBinding
 import com.amedeo.zapperiptv.model.Channel
 
 class ChannelListAdapter(
-    private val onChannelSelected: (Int) -> Unit,
+    private val onChannelSelected: (Channel) -> Unit,
+    private val onChannelFocused: (Channel) -> Unit,
 ) : ListAdapter<Channel, ChannelListAdapter.ChannelViewHolder>(ChannelDiffCallback()) {
     companion object {
         private const val FOCUS_SCALE = 1.04f
@@ -105,7 +106,7 @@ class ChannelListAdapter(
             binding.root.setOnClickListener {
                 val position = absoluteAdapterPosition
                 if (position != RecyclerView.NO_POSITION) {
-                    onChannelSelected(getActualPosition(position))
+                    onChannelSelected(getItem(getActualPosition(position)))
                 }
             }
 
@@ -117,6 +118,12 @@ class ChannelListAdapter(
                     .scaleY(scale)
                     .setDuration(ANIMATION_DURATION)
                     .start()
+                if (hasFocus) {
+                    val position = absoluteAdapterPosition
+                    if (position != RecyclerView.NO_POSITION) {
+                        onChannelFocused(getItem(getActualPosition(position)))
+                    }
+                }
             }
         }
 

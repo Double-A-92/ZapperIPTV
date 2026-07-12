@@ -21,7 +21,14 @@ class PreferencesManager(
         private const val KEY_LAST_CHANNEL_URL = "last_channel_url"
         private const val KEY_LAST_CHANNEL_SOURCE_ID = "last_channel_source_id"
         private const val KEY_LAST_SELECTED_PLAYLIST = "last_selected_playlist"
+        const val KEY_PLAYLIST_CURSORS = "playlist_cursors"
+        const val ALL_TAB_KEY = "__all__"
     }
+
+    data class PlaylistCursor(
+        val sourceId: String,
+        val streamUrl: String,
+    )
 
     fun savePlaylists(playlists: List<Playlist>) {
         try {
@@ -77,4 +84,43 @@ class PreferencesManager(
     }
 
     fun loadLastSelectedPlaylist(): String? = prefs.getString(KEY_LAST_SELECTED_PLAYLIST, null)
+
+    fun savePlaylistCursor(
+        tabKey: String,
+        sourceId: String,
+        streamUrl: String,
+    ) {
+        try {
+            val map = loadPlaylistCursors().toMutableMap()
+            map[tabKey] = PlaylistCursor(sourceId, streamUrl)
+            val json = gson.toJson(map)
+            prefs.edit().putString(KEY_PLAYLIST_CURSORS, json).apply()
+        } catch (e: JsonSyntaxException) {
+            Log.e(TAG, "Error saving playlist cursor", e)
+        }
+    }
+
+    fun loadPlaylistCursor(tabKey: String): PlaylistCursor? = loadPlaylistCursors()[tabKey]
+
+    private fun loadPlaylistCursors(): Map<String, PlaylistCursor> =
+        try {
+            val json = prefs.getString(KEY_PLAYLIST_CURSORS, null)
+            if (json != null) {
+                val type = object : TypeToken<Map<String, PlaylistCursor>>() {}.type
+                gson.fromJson(json, type) ?: emptyMap()
+            } else {
+                emptyMap()
+            }
+        } catch (e: JsonSyntaxException) {
+            Log.e(TAG, "Error loading playlist cursors, corrupt data. Resetting.", e)
+            prefs.edit().remove(KEY_PLAYLIST_CURSORS).apply()
+            emptyMap()
+        }
+
+    fun removePlaylistCursorsForPlaylist(playlistId: String) {
+        val map = loadPlaylistCursors().toMutableMap()
+        map.remove(playlistId)
+        val json = gson.toJson(map)
+        prefs.edit().putString(KEY_PLAYLIST_CURSORS, json).apply()
+    }
 }

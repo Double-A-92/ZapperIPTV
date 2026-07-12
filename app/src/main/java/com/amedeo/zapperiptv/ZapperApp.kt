@@ -33,6 +33,7 @@ class ZapperApp : Application() {
 
         mainViewModelFactory =
             MainViewModelFactory(
+                this,
                 playlistRepository,
                 preferencesManager,
             )

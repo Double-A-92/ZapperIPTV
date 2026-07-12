@@ -25,6 +25,7 @@ import com.amedeo.zapperiptv.databinding.ActivityPlayerBinding
 import com.amedeo.zapperiptv.model.CurrentProgrammeState
 import com.amedeo.zapperiptv.model.PlaybackState
 import com.amedeo.zapperiptv.player.MediaSourceHelper
+import com.amedeo.zapperiptv.storage.PreferencesManager
 import com.amedeo.zapperiptv.ui.ChannelListAdapter
 import com.amedeo.zapperiptv.ui.ImageLoader
 import com.amedeo.zapperiptv.ui.SettingsDialogFragment
@@ -78,7 +79,11 @@ class PlayerActivity : AppCompatActivity() {
         handleIntent(intent)
 
         // Ensure the Preview Channel exists so the app appears in launcher settings
-        TvLauncherHelper.ensureDefaultChannelExists(this)
+        try {
+            TvLauncherHelper.ensureDefaultChannelExists(this)
+        } catch (e: Exception) {
+            Log.w(TAG, "TV provider unavailable at startup; skipping", e)
+        }
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -141,11 +146,17 @@ class PlayerActivity : AppCompatActivity() {
             supportFragmentManager.findFragmentByTag("Settings") != null
 
     private fun setupRecyclerView() {
+        val activeTabKey = { viewModel.selectedPlaylistId.value ?: PreferencesManager.ALL_TAB_KEY }
         channelListAdapter =
-            ChannelListAdapter { position ->
-                viewModel.selectChannel(position)
-                viewModel.setChannelListVisible(false)
-            }
+            ChannelListAdapter(
+                onChannelSelected = { channel ->
+                    viewModel.selectChannel(channel)
+                    viewModel.setChannelListVisible(false)
+                },
+                onChannelFocused = { channel ->
+                    viewModel.savePlaylistCursor(activeTabKey(), channel.sourceId, channel.streamUrl)
+                },
+            )
 
         binding.channelRecyclerView.apply {
             layoutManager =
@@ -174,12 +185,38 @@ class PlayerActivity : AppCompatActivity() {
                 },
             )
         }
+
+        binding.playlistNavPrev.setOnClickListener {
+            if (binding.playlistNavPrev.isEnabled) {
+                viewModel.cyclePlaylist(-1)
+            }
+        }
+        binding.playlistNavNext.setOnClickListener {
+            if (binding.playlistNavNext.isEnabled) {
+                viewModel.cyclePlaylist(1)
+            }
+        }
     }
 
     private fun observeViewModel() {
+        viewModel.filteredChannels.observe(this) { filtered ->
+            channelListAdapter.submitList(filtered) {
+                onFilteredListChanged()
+            }
+        }
+
         viewModel.channels.observe(this) { channels ->
-            channelListAdapter.submitList(channels)
             updateWelcomeScreen(channels.isEmpty())
+        }
+
+        viewModel.playlists.observe(this) { playlists ->
+            val enableChevrons = playlists.size > 1
+            binding.playlistNavPrev.isEnabled = enableChevrons
+            binding.playlistNavNext.isEnabled = enableChevrons
+        }
+
+        viewModel.selectedPlaylistLabel.observe(this) { label ->
+            binding.playlistTitle.text = label
         }
 
         viewModel.currentChannel.observe(this) { channel ->
@@ -213,7 +250,7 @@ class PlayerActivity : AppCompatActivity() {
 
         viewModel.showChannelList.observe(this) { show ->
             binding.channelListContainer.isVisible = show
-            if (show) focusCurrentChannel()
+            if (show) scrollToDrawerTarget()
         }
 
         viewModel.errorMessage.observe(this) { msgId ->
@@ -230,14 +267,8 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
-    private fun focusCurrentChannel() {
-        val currentIdx = viewModel.currentIndex.value ?: 0
-        val targetPos = channelListAdapter.getStartOffset(currentIdx)
-        binding.channelRecyclerView.scrollToPosition(targetPos)
-        binding.channelRecyclerView.post {
-            val view = binding.channelRecyclerView.layoutManager?.findViewByPosition(targetPos)
-            view?.requestFocus() ?: binding.channelRecyclerView.requestFocus()
-        }
+    private fun onFilteredListChanged() {
+        scrollToDrawerTarget()
     }
 
     private fun updateWelcomeScreen(isEmpty: Boolean) {
@@ -275,6 +306,39 @@ class PlayerActivity : AppCompatActivity() {
         }
     }
 
+    private fun activeTabKey(): String = viewModel.selectedPlaylistId.value ?: PreferencesManager.ALL_TAB_KEY
+
+    private fun scrollToDrawerTarget() {
+        val filtered = viewModel.filteredChannels.value ?: return
+        val tabId = viewModel.selectedPlaylistId.value
+        val playing = viewModel.currentChannel.value
+        val target =
+            when {
+                playing != null &&
+                    (tabId == null || playing.sourceId == tabId) &&
+                    filtered.any { it.streamUrl == playing.streamUrl && it.sourceId == playing.sourceId } -> playing
+                else -> {
+                    val cursor = viewModel.getPlaylistCursor(tabId ?: PreferencesManager.ALL_TAB_KEY)
+                    filtered.firstOrNull { c ->
+                        cursor != null && c.sourceId == cursor.sourceId && c.streamUrl == cursor.streamUrl
+                    } ?: filtered.firstOrNull()
+                }
+            }
+        val idx =
+            if (target != null) {
+                filtered.indexOfFirst { it.streamUrl == target.streamUrl && it.sourceId == target.sourceId }
+            } else {
+                0
+            }
+        val safeIdx = idx.coerceAtLeast(0)
+        val targetPos = channelListAdapter.getStartOffset(safeIdx)
+        binding.channelRecyclerView.scrollToPosition(targetPos)
+        binding.channelRecyclerView.post {
+            val view = binding.channelRecyclerView.layoutManager?.findViewByPosition(targetPos)
+            view?.requestFocus() ?: binding.channelRecyclerView.requestFocus()
+        }
+    }
+
     private fun playStream(url: String) {
         initializePlayerIfNeeded()
         Log.d(TAG, "Playing stream: $url")
@@ -298,12 +362,15 @@ class PlayerActivity : AppCompatActivity() {
     }
 
     private fun scheduleWatchNextUpdate() {
+        if (isFinishing || isDestroyed) return
         watchNextRunnable?.let { watchNextHandler.removeCallbacks(it) }
         val channel = viewModel.currentChannel.value ?: return
 
         watchNextRunnable =
             Runnable {
-                TvLauncherHelper.updateWatchNext(this, channel)
+                if (!isFinishing && !isDestroyed) {
+                    TvLauncherHelper.updateWatchNext(this, channel)
+                }
             }.also {
                 watchNextHandler.postDelayed(it, WATCH_NEXT_DELAY_MS)
             }
@@ -365,6 +432,14 @@ class PlayerActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         releasePlayer()
+        watchNextRunnable?.let { watchNextHandler.removeCallbacks(it) }
+        watchNextRunnable = null
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        watchNextRunnable?.let { watchNextHandler.removeCallbacks(it) }
+        watchNextRunnable = null
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean =
@@ -396,8 +471,13 @@ class PlayerActivity : AppCompatActivity() {
     ): Boolean =
         when (keyCode) {
             KeyEvent.KEYCODE_BACK -> true
+            KeyEvent.KEYCODE_DPAD_LEFT -> {
+                viewModel.cyclePlaylist(-1)
+                true
+            }
+
             KeyEvent.KEYCODE_DPAD_RIGHT -> {
-                viewModel.setChannelListVisible(false)
+                viewModel.cyclePlaylist(1)
                 true
             }
 

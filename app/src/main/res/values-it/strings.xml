@@ -32,4 +32,7 @@
     <string name="press_back_again_to_exit">Premi di nuovo indietro per uscire</string>
     <string name="tv_launcher_program_description">Guardati di recente</string>
     <string name="tv_launcher_channel_description">Canali guardati di recente</string>
+    <string name="all_playlists">Tutte</string>
+    <string name="playlist_prev">Playlist precedente</string>
+    <string name="playlist_next">Playlist successiva</string>
 </resources>

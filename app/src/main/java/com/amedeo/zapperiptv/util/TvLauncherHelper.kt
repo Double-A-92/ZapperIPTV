@@ -5,6 +5,7 @@ import android.content.Context
 import android.database.Cursor
 import android.net.Uri
 import android.os.Build
+import android.os.RemoteException
 import android.util.Log
 import androidx.annotation.OptIn
 import androidx.core.net.toUri
@@ -14,8 +15,10 @@ import androidx.tvprovider.media.tv.TvContractCompat
 import androidx.tvprovider.media.tv.WatchNextProgram
 import com.amedeo.zapperiptv.R
 import com.amedeo.zapperiptv.model.Channel
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import androidx.tvprovider.media.tv.Channel as TvChannel
 
@@ -31,15 +34,19 @@ object TvLauncherHelper {
         channel: Channel,
     ) {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
+        if (!isContextAlive(context)) return
 
-        CoroutineScope(Dispatchers.IO).launch {
+        val supervisor = SupervisorJob()
+        val exceptionHandler =
+            CoroutineExceptionHandler { _, throwable ->
+                Log.w(TAG, "TV provider update failed: ${throwable.message}", throwable)
+            }
+        CoroutineScope(Dispatchers.IO + supervisor + exceptionHandler).launch {
             try {
                 val channelId = getOrCreateDefaultChannelId(context)
 
-                // 1. Update system "Watch Next" row (Continue Watching)
                 updateWatchNextRow(context, channel)
 
-                // 2. Update our app's dedicated Preview Channel row
                 if (channelId != -1L) {
                     updatePreviewRow(context, channelId, channel)
                 }
@@ -47,9 +54,25 @@ object TvLauncherHelper {
                 Log.e(TAG, "Security error updating TV launcher", e)
             } catch (e: IllegalStateException) {
                 Log.e(TAG, "State error updating TV launcher", e)
+            } catch (e: RemoteException) {
+                Log.w(TAG, "TV provider unavailable (DeadObjectException); skipping", e)
             }
         }
     }
+
+    @OptIn(UnstableApi::class)
+    fun ensureDefaultChannelExists(context: Context) {
+        if (!isContextAlive(context)) return
+        try {
+            getOrCreateDefaultChannelId(context)
+        } catch (e: RemoteException) {
+            Log.w(TAG, "TV provider unavailable during ensureDefaultChannelExists; skipping", e)
+        }
+    }
+
+    private fun isContextAlive(context: Context): Boolean =
+        context !is android.app.Activity ||
+            (!(context as android.app.Activity).isFinishing && !(context as android.app.Activity).isDestroyed)
 
     private fun updateWatchNextRow(
         context: Context,
@@ -425,9 +448,5 @@ object TvLauncherHelper {
                     null,
                 )
         }
-    }
-
-    fun ensureDefaultChannelExists(context: Context) {
-        getOrCreateDefaultChannelId(context)
     }
 }

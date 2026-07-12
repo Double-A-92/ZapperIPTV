@@ -1,11 +1,13 @@
 package com.amedeo.zapperiptv.viewmodel
 
+import android.app.Application
 import android.os.Handler
 import android.os.Looper
 import android.util.Log
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
+import androidx.lifecycle.MediatorLiveData
 import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.amedeo.zapperiptv.R
 import com.amedeo.zapperiptv.model.Channel
@@ -17,9 +19,10 @@ import com.amedeo.zapperiptv.storage.PreferencesManager
 import kotlinx.coroutines.launch
 
 class MainViewModel(
+    application: Application,
     private val repository: PlaylistRepository,
     private val preferencesManager: PreferencesManager,
-) : ViewModel() {
+) : AndroidViewModel(application) {
     companion object {
         private const val TAG = "MainViewModel"
         private const val DEBOUNCE_DELAY_MS = 300L
@@ -52,8 +55,21 @@ class MainViewModel(
     private val _playlists = MutableLiveData<List<Playlist>>(emptyList())
     val playlists: LiveData<List<Playlist>> = _playlists
 
+    private val _selectedPlaylistId = MutableLiveData<String?>(preferencesManager.loadLastSelectedPlaylist())
+    val selectedPlaylistId: LiveData<String?> = _selectedPlaylistId
+
+    private val _selectedPlaylistLabel =
+        MutableLiveData<String>(getApplication<Application>().getString(R.string.all_playlists))
+    val selectedPlaylistLabel: LiveData<String> = _selectedPlaylistLabel
+
     private val _currentProgrammeState = MutableLiveData<CurrentProgrammeState>(CurrentProgrammeState(null))
     val currentProgrammeState: LiveData<CurrentProgrammeState> = _currentProgrammeState
+
+    val filteredChannels: LiveData<List<Channel>> =
+        MediatorLiveData<List<Channel>>().also { mediator ->
+            mediator.addSource(_channels) { computeFiltered() }
+            mediator.addSource(_selectedPlaylistId) { computeFiltered() }
+        }
 
     private val handler = Handler(Looper.getMainLooper())
 
@@ -75,6 +91,25 @@ class MainViewModel(
         loadPlaylists()
     }
 
+    private fun computeFiltered() {
+        val all = _channels.value ?: emptyList()
+        val selectedId = _selectedPlaylistId.value
+        val filtered = if (selectedId == null) all else all.filter { it.sourceId == selectedId }
+        (filteredChannels as MutableLiveData<List<Channel>>).value = filtered
+    }
+
+    private fun updateSelectedPlaylistLabel() {
+        val id = _selectedPlaylistId.value
+        val label =
+            if (id == null) {
+                getApplication<Application>().getString(R.string.all_playlists)
+            } else {
+                _playlists.value?.find { it.id == id }?.name
+                    ?: getApplication<Application>().getString(R.string.all_playlists)
+            }
+        _selectedPlaylistLabel.value = label
+    }
+
     fun setPendingChannelUrl(url: String?) {
         val channels = _channels.value
         if (channels != null && channels.isNotEmpty() && url != null) {
@@ -94,6 +129,43 @@ class MainViewModel(
         }
     }
 
+    fun cyclePlaylist(direction: Int) {
+        val playlists = _playlists.value ?: return
+        val tabs = listOf<String?>(null) + playlists.map { it.id }
+        if (tabs.size <= 1) return
+
+        val currentIndex = tabs.indexOf(_selectedPlaylistId.value).coerceAtLeast(0)
+        val nextIndex = (currentIndex + direction + tabs.size) % tabs.size
+        val nextTabId = tabs[nextIndex]
+
+        _selectedPlaylistId.value = nextTabId
+        preferencesManager.saveLastSelectedPlaylist(nextTabId)
+        updateSelectedPlaylistLabel()
+    }
+
+    fun selectChannel(channel: Channel) {
+        val list = _channels.value ?: return
+        if (list.isEmpty()) return
+        cancelErrorRecovery()
+        val idx = list.indexOfFirst { it.streamUrl == channel.streamUrl && it.sourceId == channel.sourceId }
+        if (idx >= 0) {
+            val tabKey = _selectedPlaylistId.value ?: PreferencesManager.ALL_TAB_KEY
+            preferencesManager.savePlaylistCursor(tabKey, channel.sourceId, channel.streamUrl)
+            selectChannel(idx)
+        }
+    }
+
+    fun savePlaylistCursor(
+        tabKey: String,
+        sourceId: String,
+        streamUrl: String,
+    ) {
+        preferencesManager.savePlaylistCursor(tabKey, sourceId, streamUrl)
+    }
+
+    fun getPlaylistCursor(tabKey: String): PreferencesManager.PlaylistCursor? =
+        preferencesManager.loadPlaylistCursor(tabKey)
+
     fun loadPlaylists(forceReload: Boolean = false) {
         _errorMessage.value = null
         viewModelScope.launch {
@@ -101,6 +173,15 @@ class MainViewModel(
             val loadedChannels = repository.loadChannels(forceReload)
             repository.loadEpg(forceReload)
             _channels.value = loadedChannels
+
+            val currentSelectedId = _selectedPlaylistId.value
+            val playlistIds = _playlists.value.orEmpty().map { it.id }
+            if (currentSelectedId != null && !playlistIds.contains(currentSelectedId)) {
+                _selectedPlaylistId.value = null
+                preferencesManager.saveLastSelectedPlaylist(null)
+                preferencesManager.removePlaylistCursorsForPlaylist(currentSelectedId)
+            }
+            updateSelectedPlaylistLabel()
 
             if (loadedChannels.isEmpty()) {
                 _currentChannel.value = null
