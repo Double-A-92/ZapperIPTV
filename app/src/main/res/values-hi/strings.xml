@@ -35,4 +35,8 @@
     <string name="all_playlists">सभी</string>
     <string name="playlist_prev">पिछली प्लेलिस्ट</string>
     <string name="playlist_next">अगली प्लेलिस्ट</string>
+    <string name="favorites">पसंदीदा</string>
+    <string name="favorite_added">पसंदीदा में जोड़ा गया</string>
+    <string name="favorite_removed">पसंदीदा से हटाया गया</string>
+    <string name="favorites_empty_hint">किसी चैनल पर OK दबाकर रखें ताकि वह पसंदीदा में जुड़ जाए</string>
 </resources>

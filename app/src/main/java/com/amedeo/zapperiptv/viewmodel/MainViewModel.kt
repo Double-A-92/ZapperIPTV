@@ -29,6 +29,7 @@ class MainViewModel(
         private const val OVERLAY_DELAY_MS = 3000L
         private const val ERROR_RECOVERY_DELAY_MS = 2000L
         private const val EPG_TICK_INTERVAL_MS = 60 * 60 * 1000L
+        const val FAVORITES_TAB_ID = "__favorites__"
     }
 
     private val _channels = MutableLiveData<List<Channel>>(emptyList())
@@ -55,6 +56,12 @@ class MainViewModel(
     private val _playlists = MutableLiveData<List<Playlist>>(emptyList())
     val playlists: LiveData<List<Playlist>> = _playlists
 
+    private val _favorites =
+        MutableLiveData<Set<Pair<String, String>>>(
+            preferencesManager.getFavorites().map { it.sourceId to it.streamUrl }.toSet(),
+        )
+    val favorites: LiveData<Set<Pair<String, String>>> = _favorites
+
     private val _selectedPlaylistId = MutableLiveData<String?>(preferencesManager.loadLastSelectedPlaylist())
     val selectedPlaylistId: LiveData<String?> = _selectedPlaylistId
 
@@ -69,6 +76,7 @@ class MainViewModel(
         MediatorLiveData<List<Channel>>().also { mediator ->
             mediator.addSource(_channels) { computeFiltered() }
             mediator.addSource(_selectedPlaylistId) { computeFiltered() }
+            mediator.addSource(_favorites) { computeFiltered() }
         }
 
     private val handler = Handler(Looper.getMainLooper())
@@ -94,18 +102,26 @@ class MainViewModel(
     private fun computeFiltered() {
         val all = _channels.value ?: emptyList()
         val selectedId = _selectedPlaylistId.value
-        val filtered = if (selectedId == null) all else all.filter { it.sourceId == selectedId }
+        val favSet = _favorites.value ?: emptySet()
+        val filtered =
+            when {
+                selectedId == null -> all
+                selectedId == FAVORITES_TAB_ID ->
+                    all.filter { favSet.contains(it.sourceId to it.streamUrl) }
+                else -> all.filter { it.sourceId == selectedId }
+            }
         (filteredChannels as MutableLiveData<List<Channel>>).value = filtered
     }
 
     private fun updateSelectedPlaylistLabel() {
         val id = _selectedPlaylistId.value
         val label =
-            if (id == null) {
-                getApplication<Application>().getString(R.string.all_playlists)
-            } else {
-                _playlists.value?.find { it.id == id }?.name
-                    ?: getApplication<Application>().getString(R.string.all_playlists)
+            when (id) {
+                null -> getApplication<Application>().getString(R.string.all_playlists)
+                FAVORITES_TAB_ID -> getApplication<Application>().getString(R.string.favorites)
+                else ->
+                    _playlists.value?.find { it.id == id }?.name
+                        ?: getApplication<Application>().getString(R.string.all_playlists)
             }
         _selectedPlaylistLabel.value = label
     }
@@ -129,9 +145,12 @@ class MainViewModel(
         }
     }
 
+    fun buildTabs(): List<String?> =
+        listOf<String?>(null) + (_playlists.value ?: emptyList()).map { it.id } +
+            listOf(FAVORITES_TAB_ID)
+
     fun cyclePlaylist(direction: Int) {
-        val playlists = _playlists.value ?: return
-        val tabs = listOf<String?>(null) + playlists.map { it.id }
+        val tabs = buildTabs()
         if (tabs.size <= 1) return
 
         val currentIndex = tabs.indexOf(_selectedPlaylistId.value).coerceAtLeast(0)
@@ -142,6 +161,19 @@ class MainViewModel(
         preferencesManager.saveLastSelectedPlaylist(nextTabId)
         updateSelectedPlaylistLabel()
     }
+
+    fun toggleFavorite(
+        sourceId: String,
+        streamUrl: String,
+    ): Boolean {
+        val added = preferencesManager.toggleFavorite(sourceId, streamUrl)
+        _favorites.value =
+            preferencesManager.getFavorites().map { it.sourceId to it.streamUrl }.toSet()
+        return added
+    }
+
+    fun isFavorite(channel: Channel): Boolean =
+        (_favorites.value ?: emptySet()).contains(channel.sourceId to channel.streamUrl)
 
     fun selectChannel(channel: Channel) {
         val list = _channels.value ?: return
@@ -193,6 +225,7 @@ class MainViewModel(
             repository.loadEpg(forceReload)
             _channels.value = loadedChannels
             validateSelectedPlaylist()
+            pruneFavorites()
             updateSelectedPlaylistLabel()
             resumeChannelSelection(loadedChannels)
             startEpgTick()
@@ -206,6 +239,21 @@ class MainViewModel(
             _selectedPlaylistId.value = null
             preferencesManager.saveLastSelectedPlaylist(null)
             preferencesManager.removePlaylistCursorsForPlaylist(currentSelectedId)
+        }
+    }
+
+    private fun pruneFavorites() {
+        val validSourceIds =
+            _playlists.value
+                .orEmpty()
+                .map { it.id }
+                .toSet()
+        val before = _favorites.value ?: emptySet()
+        preferencesManager.pruneFavoritesForMissingPlaylists(validSourceIds)
+        val after =
+            preferencesManager.getFavorites().map { it.sourceId to it.streamUrl }.toSet()
+        if (before != after) {
+            _favorites.value = after
         }
     }
 

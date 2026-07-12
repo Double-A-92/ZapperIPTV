@@ -208,6 +208,21 @@
             android:padding="8dp"
             android:focusable="true"
             android:focusableInTouchMode="false" />
+
+        <TextView
+            android:id="@+id/favorites_empty_hint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:layout_marginStart="24dp"
+            android:layout_marginEnd="24dp"
+            android:layout_marginTop="56dp"
+            android:gravity="center"
+            android:text="@string/favorites_empty_hint"
+            android:textColor="@color/text_secondary"
+            android:textSize="@dimen/text_size_medium"
+            android:textAlignment="center"
+            android:visibility="gone" />
     </FrameLayout>
 
     <TextView

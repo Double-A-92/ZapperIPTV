@@ -35,4 +35,8 @@
     <string name="all_playlists">Toutes</string>
     <string name="playlist_prev">Playlist précédente</string>
     <string name="playlist_next">Playlist suivante</string>
+    <string name="favorites">Favoris</string>
+    <string name="favorite_added">Ajouté aux favoris</string>
+    <string name="favorite_removed">Retiré des favoris</string>
+    <string name="favorites_empty_hint">Maintenez OK sur une chaîne pour l\'ajouter aux favoris</string>
 </resources>

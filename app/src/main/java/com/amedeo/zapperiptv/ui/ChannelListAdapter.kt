@@ -33,6 +33,12 @@ class ChannelListAdapter(
 
     private var indicatorColors: IntArray? = null
     private val sourceColorMap = mutableMapOf<String, Int>()
+    private var favoriteChecker: (Channel) -> Boolean = { false }
+
+    fun setFavoriteChecker(checker: (Channel) -> Boolean) {
+        favoriteChecker = checker
+        notifyDataSetChanged()
+    }
 
     override fun onCreateViewHolder(
         parent: ViewGroup,
@@ -144,7 +150,16 @@ class ChannelListAdapter(
                 }
 
             ImageLoader.load(channel.logoUrl, binding.channelLogo, R.drawable.ic_placeholder_logo)
-            binding.playlistIndicator.setTextColor(color)
+
+            if (favoriteChecker(channel)) {
+                binding.playlistIndicator.text = "★"
+                binding.playlistIndicator.setTextColor(
+                    ContextCompat.getColor(binding.root.context, R.color.accent_amber),
+                )
+            } else {
+                binding.playlistIndicator.text = "●"
+                binding.playlistIndicator.setTextColor(color)
+            }
         }
     }
 

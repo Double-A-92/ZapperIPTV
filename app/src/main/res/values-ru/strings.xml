@@ -35,4 +35,8 @@
     <string name="all_playlists">Все</string>
     <string name="playlist_prev">Предыдущий плейлист</string>
     <string name="playlist_next">Следующий плейлист</string>
+    <string name="favorites">Избранное</string>
+    <string name="favorite_added">Добавлено в Избранное</string>
+    <string name="favorite_removed">Удалено из Избранного</string>
+    <string name="favorites_empty_hint">Нажмите и удерживайте OK на канале, чтобы добавить его в Избранное</string>
 </resources>

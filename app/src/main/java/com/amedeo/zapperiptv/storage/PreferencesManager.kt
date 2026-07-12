@@ -23,9 +23,15 @@ class PreferencesManager(
         private const val KEY_LAST_SELECTED_PLAYLIST = "last_selected_playlist"
         const val KEY_PLAYLIST_CURSORS = "playlist_cursors"
         const val ALL_TAB_KEY = "__all__"
+        private const val KEY_FAVORITES = "favorites"
     }
 
     data class PlaylistCursor(
+        val sourceId: String,
+        val streamUrl: String,
+    )
+
+    data class FavoriteEntry(
         val sourceId: String,
         val streamUrl: String,
     )
@@ -122,5 +128,61 @@ class PreferencesManager(
         map.remove(playlistId)
         val json = gson.toJson(map)
         prefs.edit().putString(KEY_PLAYLIST_CURSORS, json).apply()
+    }
+
+    fun getFavorites(): Set<FavoriteEntry> =
+        try {
+            val json = prefs.getString(KEY_FAVORITES, null)
+            if (json != null) {
+                val type = object : TypeToken<Set<FavoriteEntry>>() {}.type
+                gson.fromJson<Set<FavoriteEntry>>(json, type) ?: emptySet()
+            } else {
+                emptySet()
+            }
+        } catch (e: JsonSyntaxException) {
+            Log.e(TAG, "Error loading favorites, corrupt data. Resetting.", e)
+            prefs.edit().remove(KEY_FAVORITES).apply()
+            emptySet()
+        }
+
+    fun isFavorite(
+        sourceId: String,
+        streamUrl: String,
+    ): Boolean = getFavorites().any { it.sourceId == sourceId && it.streamUrl == streamUrl }
+
+    fun toggleFavorite(
+        sourceId: String,
+        streamUrl: String,
+    ): Boolean {
+        val favorites = getFavorites().toMutableSet()
+        val entry = FavoriteEntry(sourceId, streamUrl)
+        val added =
+            if (favorites.any { it.sourceId == sourceId && it.streamUrl == streamUrl }) {
+                favorites.removeIf { it.sourceId == sourceId && it.streamUrl == streamUrl }
+                false
+            } else {
+                favorites.add(entry)
+                true
+            }
+        try {
+            val json = gson.toJson(favorites)
+            prefs.edit().putString(KEY_FAVORITES, json).apply()
+        } catch (e: JsonSyntaxException) {
+            Log.e(TAG, "Error saving favorites", e)
+        }
+        return added
+    }
+
+    fun pruneFavoritesForMissingPlaylists(validSourceIds: Set<String>) {
+        val favorites = getFavorites()
+        val stale = favorites.filter { it.sourceId !in validSourceIds }
+        if (stale.isEmpty()) return
+        val remaining = favorites - stale.toSet()
+        try {
+            val json = gson.toJson(remaining)
+            prefs.edit().putString(KEY_FAVORITES, json).apply()
+        } catch (e: JsonSyntaxException) {
+            Log.e(TAG, "Error pruning favorites", e)
+        }
     }
 }

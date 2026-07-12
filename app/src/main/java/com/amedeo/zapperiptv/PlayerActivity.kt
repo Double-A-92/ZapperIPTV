@@ -8,6 +8,7 @@ import android.util.Log
 import android.view.KeyEvent
 import android.view.MotionEvent
 import android.view.View
+import android.view.ViewConfiguration
 import android.widget.Toast
 import androidx.activity.viewModels
 import androidx.annotation.OptIn
@@ -22,6 +23,7 @@ import androidx.media3.extractor.DefaultExtractorsFactory
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.amedeo.zapperiptv.databinding.ActivityPlayerBinding
+import com.amedeo.zapperiptv.model.Channel
 import com.amedeo.zapperiptv.model.CurrentProgrammeState
 import com.amedeo.zapperiptv.model.PlaybackState
 import com.amedeo.zapperiptv.player.MediaSourceHelper
@@ -48,9 +50,17 @@ class PlayerActivity : AppCompatActivity() {
     private lateinit var channelListAdapter: ChannelListAdapter
     private lateinit var swipeGestureHandler: SwipeGestureHandler
     private var lastBackPressTime: Long = 0
+    private var focusedChannel: Channel? = null
 
     private val watchNextHandler = Handler(Looper.getMainLooper())
     private var watchNextRunnable: Runnable? = null
+
+    private val favoriteLongPressHandler = Handler(Looper.getMainLooper())
+    private var favoriteLongPressRunnable: Runnable? = null
+    private var favoriteLongPressFired = false
+    private var scrollToTargetOnNextList = false
+    private var pendingRefocusOnNextList = false
+    private var pendingFocusOldIndex = -1
 
     companion object {
         private const val TAG = "PlayerActivity"
@@ -66,6 +76,7 @@ class PlayerActivity : AppCompatActivity() {
         private const val ANIM_DURATION_PRESS = 1200L
         private const val ANIM_DURATION_RELEASE = 600L
         private const val ANIM_START_DELAY = 400L
+        private val LONG_PRESS_TIMEOUT_MS = ViewConfiguration.getLongPressTimeout().toLong()
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -154,6 +165,7 @@ class PlayerActivity : AppCompatActivity() {
                     viewModel.setChannelListVisible(false)
                 },
                 onChannelFocused = { channel ->
+                    focusedChannel = channel
                     viewModel.savePlaylistCursor(activeTabKey(), channel.sourceId, channel.streamUrl)
                 },
             )
@@ -188,11 +200,13 @@ class PlayerActivity : AppCompatActivity() {
 
         binding.playlistNavPrev.setOnClickListener {
             if (binding.playlistNavPrev.isEnabled) {
+                scrollToTargetOnNextList = true
                 viewModel.cyclePlaylist(-1)
             }
         }
         binding.playlistNavNext.setOnClickListener {
             if (binding.playlistNavNext.isEnabled) {
+                scrollToTargetOnNextList = true
                 viewModel.cyclePlaylist(1)
             }
         }
@@ -201,18 +215,34 @@ class PlayerActivity : AppCompatActivity() {
     private fun observeViewModel() {
         viewModel.filteredChannels.observe(this) { filtered ->
             channelListAdapter.submitList(filtered) {
-                onFilteredListChanged()
+                if (pendingRefocusOnNextList) {
+                    // Favorite toggle: keep the toggled channel selected (or the
+                    // one above it when it was removed from the Favorites tab).
+                    pendingRefocusOnNextList = false
+                    val oldIndex = pendingFocusOldIndex
+                    pendingFocusOldIndex = -1
+                    refocusAfterFavoriteToggle(oldIndex)
+                } else if (scrollToTargetOnNextList) {
+                    // Open / tab cycle: reposition to the playing/cursor target.
+                    scrollToTargetOnNextList = false
+                    scrollToDrawerTarget()
+                }
             }
+            updateFavoritesEmptyHint()
         }
 
         viewModel.channels.observe(this) { channels ->
             updateWelcomeScreen(channels.isEmpty())
         }
 
-        viewModel.playlists.observe(this) { playlists ->
-            val enableChevrons = playlists.size > 1
+        viewModel.playlists.observe(this) {
+            val enableChevrons = viewModel.buildTabs().size > 1
             binding.playlistNavPrev.isEnabled = enableChevrons
             binding.playlistNavNext.isEnabled = enableChevrons
+        }
+
+        viewModel.favorites.observe(this) {
+            channelListAdapter.setFavoriteChecker { channel -> viewModel.isFavorite(channel) }
         }
 
         viewModel.selectedPlaylistLabel.observe(this) { label ->
@@ -251,6 +281,7 @@ class PlayerActivity : AppCompatActivity() {
         viewModel.showChannelList.observe(this) { show ->
             binding.channelListContainer.isVisible = show
             if (show) scrollToDrawerTarget()
+            updateFavoritesEmptyHint()
         }
 
         viewModel.errorMessage.observe(this) { msgId ->
@@ -265,10 +296,6 @@ class PlayerActivity : AppCompatActivity() {
         viewModel.currentProgrammeState.observe(this) { state ->
             updateOverlayProgramme(state)
         }
-    }
-
-    private fun onFilteredListChanged() {
-        scrollToDrawerTarget()
     }
 
     private fun updateWelcomeScreen(isEmpty: Boolean) {
@@ -308,6 +335,12 @@ class PlayerActivity : AppCompatActivity() {
 
     private fun activeTabKey(): String = viewModel.selectedPlaylistId.value ?: PreferencesManager.ALL_TAB_KEY
 
+    private fun updateFavoritesEmptyHint() {
+        val isFavoritesTab = viewModel.selectedPlaylistId.value == MainViewModel.FAVORITES_TAB_ID
+        val isEmpty = (viewModel.filteredChannels.value ?: emptyList()).isEmpty()
+        binding.favoritesEmptyHint.isVisible = isFavoritesTab && isEmpty && binding.channelListContainer.isVisible
+    }
+
     private fun scrollToDrawerTarget() {
         val filtered = viewModel.filteredChannels.value ?: return
         val tabId = viewModel.selectedPlaylistId.value
@@ -331,12 +364,42 @@ class PlayerActivity : AppCompatActivity() {
                 0
             }
         val safeIdx = idx.coerceAtLeast(0)
+        focusListAtActualIndex(safeIdx)
+    }
+
+    private fun focusListAtActualIndex(actualIndex: Int) {
+        val size = channelListAdapter.currentList.size
+        if (size == 0) {
+            binding.channelRecyclerView.requestFocus()
+            return
+        }
+        val safeIdx = actualIndex.coerceIn(0, size - 1)
         val targetPos = channelListAdapter.getStartOffset(safeIdx)
         binding.channelRecyclerView.scrollToPosition(targetPos)
         binding.channelRecyclerView.post {
             val view = binding.channelRecyclerView.layoutManager?.findViewByPosition(targetPos)
             view?.requestFocus() ?: binding.channelRecyclerView.requestFocus()
         }
+    }
+
+    private fun refocusAfterFavoriteToggle(oldIndex: Int) {
+        val list = viewModel.filteredChannels.value ?: return
+        if (list.isEmpty()) {
+            binding.channelRecyclerView.requestFocus()
+            return
+        }
+        val removed =
+            focusedChannel == null ||
+                list.none {
+                    it.sourceId == focusedChannel?.sourceId && it.streamUrl == focusedChannel?.streamUrl
+                }
+        val targetActual =
+            if (oldIndex >= 0) {
+                if (removed) (oldIndex - 1).coerceAtLeast(0) else oldIndex
+            } else {
+                0
+            }
+        focusListAtActualIndex(targetActual)
     }
 
     private fun playStream(url: String) {
@@ -440,10 +503,63 @@ class PlayerActivity : AppCompatActivity() {
         super.onDestroy()
         watchNextRunnable?.let { watchNextHandler.removeCallbacks(it) }
         watchNextRunnable = null
+        favoriteLongPressRunnable?.let { favoriteLongPressHandler.removeCallbacks(it) }
+        favoriteLongPressRunnable = null
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean =
         swipeGestureHandler.onTouchEvent(event) || super.onTouchEvent(event)
+
+    override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        val isOk =
+            event.keyCode == KeyEvent.KEYCODE_DPAD_CENTER ||
+                event.keyCode == KeyEvent.KEYCODE_ENTER
+        // Intercept OK while the channel drawer is open. A focused channel row
+        // would otherwise consume the key, so the activity's onKeyDown /
+        // onKeyLongPress would never be called and the long-press would be lost.
+        if (isOk && binding.channelListContainer.isVisible) {
+            return handleDrawerOkKey(event)
+        }
+        return super.dispatchKeyEvent(event)
+    }
+
+    private fun handleDrawerOkKey(event: KeyEvent): Boolean {
+        when (event.action) {
+            KeyEvent.ACTION_DOWN -> {
+                if (event.repeatCount == 0 && favoriteLongPressRunnable == null) {
+                    favoriteLongPressFired = false
+                    val runnable =
+                        Runnable {
+                            favoriteLongPressFired = true
+                            toggleFavoriteOnFocusedChannel()
+                        }
+                    favoriteLongPressRunnable = runnable
+                    favoriteLongPressHandler.postDelayed(runnable, LONG_PRESS_TIMEOUT_MS)
+                }
+                return true
+            }
+
+            KeyEvent.ACTION_UP -> {
+                favoriteLongPressRunnable?.let {
+                    favoriteLongPressHandler.removeCallbacks(it)
+                    favoriteLongPressRunnable = null
+                }
+                if (favoriteLongPressFired) {
+                    favoriteLongPressFired = false
+                    return true
+                }
+                // Short press: play the focused channel (replaces the view click
+                // that the consumed key would otherwise have triggered).
+                focusedChannel?.let { channel ->
+                    viewModel.selectChannel(channel)
+                    viewModel.setChannelListVisible(false)
+                }
+                return true
+            }
+
+            else -> return true
+        }
+    }
 
     override fun onKeyDown(
         keyCode: Int,
@@ -472,11 +588,13 @@ class PlayerActivity : AppCompatActivity() {
         when (keyCode) {
             KeyEvent.KEYCODE_BACK -> true
             KeyEvent.KEYCODE_DPAD_LEFT -> {
+                scrollToTargetOnNextList = true
                 viewModel.cyclePlaylist(-1)
                 true
             }
 
             KeyEvent.KEYCODE_DPAD_RIGHT -> {
+                scrollToTargetOnNextList = true
                 viewModel.cyclePlaylist(1)
                 true
             }
@@ -514,13 +632,39 @@ class PlayerActivity : AppCompatActivity() {
         event: KeyEvent?,
     ): Boolean =
         when (keyCode) {
-            KeyEvent.KEYCODE_BACK, KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> {
+            KeyEvent.KEYCODE_BACK -> {
                 showSettings()
+                true
+            }
+
+            KeyEvent.KEYCODE_DPAD_CENTER, KeyEvent.KEYCODE_ENTER -> {
+                // The drawer-visible case is handled in dispatchKeyEvent; here we
+                // only fall back to Settings for the playback screen.
+                if (!binding.channelListContainer.isVisible) {
+                    showSettings()
+                }
                 true
             }
 
             else -> super.onKeyLongPress(keyCode, event)
         }
+
+    private fun toggleFavoriteOnFocusedChannel() {
+        val channel = focusedChannel ?: return
+        val oldList = viewModel.filteredChannels.value
+        pendingFocusOldIndex =
+            oldList?.indexOfFirst {
+                it.sourceId == channel.sourceId && it.streamUrl == channel.streamUrl
+            } ?: -1
+        val added = viewModel.toggleFavorite(channel.sourceId, channel.streamUrl)
+        pendingRefocusOnNextList = true
+        Toast
+            .makeText(
+                this,
+                if (added) R.string.favorite_added else R.string.favorite_removed,
+                Toast.LENGTH_SHORT,
+            ).show()
+    }
 
     override fun onKeyUp(
         keyCode: Int,
