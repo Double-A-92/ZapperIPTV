@@ -24,6 +24,7 @@
     <string name="epg_indicator">EPG</string>
     <string name="error_invalid_url">URL no válida</string>
     <string name="error_empty_name">El nombre no puede estar vacío</string>
+    <string name="error_channel_failed">No se pudo cargar este canal.</string>
     <string name="error_all_channels_failed">Fallo al reproducir todos los canales.</string>
     <string name="error_unknown">Error desconocido</string>
     <string name="channel_unknown">Canal desconocido</string>

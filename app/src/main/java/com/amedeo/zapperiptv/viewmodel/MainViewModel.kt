@@ -27,7 +27,9 @@ class MainViewModel(
         private const val TAG = "MainViewModel"
         private const val DEBOUNCE_DELAY_MS = 300L
         private const val OVERLAY_DELAY_MS = 3000L
-        private const val ERROR_RECOVERY_DELAY_MS = 2000L
+        private const val LOAD_TIMEOUT_MS = 10000L
+        private const val MAX_RETRIES = 5
+        private const val RETRY_DELAY_MS = 2000L
         private const val EPG_TICK_INTERVAL_MS = 60 * 60 * 1000L
         const val FAVORITES_TAB_ID = "__favorites__"
     }
@@ -83,14 +85,15 @@ class MainViewModel(
 
     private val playChannelRunnable = Runnable { executePlayChannel() }
     private val hideOverlayRunnable = Runnable { _showOverlay.value = false }
-    private val errorRecoveryRunnable = Runnable { attemptErrorRecovery() }
+    private val loadTimeoutRunnable = Runnable { onLoadTimeout() }
+    private val retryRunnable = Runnable { retryCurrentChannel() }
     private val epgTickRunnable =
         Runnable {
             updateCurrentProgramme()
             startEpgTick()
         }
 
-    private val attemptedIndicesInCycle = mutableSetOf<Int>()
+    private var retryCount = 0
     private var isRecovering = false
 
     private var pendingChannelUrl: String? = null
@@ -352,60 +355,66 @@ class MainViewModel(
         val channel = _currentChannel.value ?: return
         Log.d(TAG, "Requesting playback for: ${channel.name}")
         preferencesManager.saveLastChannel(channel.sourceId, channel.streamUrl)
-        attemptedIndicesInCycle.clear()
-        attemptedIndicesInCycle.add(_currentIndex.value ?: 0)
+        startLoadWatchdog()
     }
 
     fun setPlaybackState(state: PlaybackState) {
         _playbackState.value = state
         when (state) {
+            is PlaybackState.Loading -> startLoadWatchdog()
+            PlaybackState.Playing -> stopLoadWatchdog()
             is PlaybackState.Error -> {
                 Log.e(TAG, "Playback error: ${state.message}")
                 showOverlayTemporarily()
-                startErrorRecovery()
+                handleFailure()
             }
-            PlaybackState.Playing -> cancelErrorRecovery()
-            else -> {}
+            PlaybackState.Idle -> stopLoadWatchdog()
         }
     }
 
-    private fun startErrorRecovery() {
-        if (isRecovering) return
-        isRecovering = true
-        handler.postDelayed(errorRecoveryRunnable, ERROR_RECOVERY_DELAY_MS)
+    private fun startLoadWatchdog() {
+        handler.removeCallbacks(loadTimeoutRunnable)
+        handler.postDelayed(loadTimeoutRunnable, LOAD_TIMEOUT_MS)
     }
 
-    private fun attemptErrorRecovery() {
-        val list = _channels.value ?: return
-        if (list.isEmpty()) {
-            isRecovering = false
-        } else {
-            val nextIndex = findNextAvailableIndex(list)
-            if (nextIndex != -1) {
-                Log.d(TAG, "Auto-advancing to next channel for error recovery: index $nextIndex")
-                setIndexAndPlay(nextIndex)
-            } else {
-                _errorMessage.value = R.string.error_all_channels_failed
-                isRecovering = false
-            }
-        }
-    }
-
-    private fun findNextAvailableIndex(list: List<Channel>): Int {
-        var next = (_currentIndex.value ?: 0) + 1
-        if (next >= list.size) next = 0
-        while (attemptedIndicesInCycle.contains(next)) {
-            next++
-            if (next >= list.size) next = 0
-            if (next == (_currentIndex.value ?: 0)) return -1
-        }
-        return next
-    }
-
-    private fun cancelErrorRecovery() {
-        handler.removeCallbacks(errorRecoveryRunnable)
+    private fun stopLoadWatchdog() {
+        handler.removeCallbacks(loadTimeoutRunnable)
+        handler.removeCallbacks(retryRunnable)
+        retryCount = 0
         isRecovering = false
         _errorMessage.value = null
+    }
+
+    fun cancelErrorRecovery() {
+        stopLoadWatchdog()
+    }
+
+    private fun onLoadTimeout() {
+        if (isRecovering) return
+        handleFailure()
+    }
+
+    private fun handleFailure() {
+        if (isRecovering) return
+        retryCount++
+        showErrorState()
+        if (retryCount < MAX_RETRIES) {
+            isRecovering = true
+            Log.d(TAG, "Retrying channel (attempt $retryCount of $MAX_RETRIES)")
+            handler.postDelayed(retryRunnable, RETRY_DELAY_MS)
+        } else {
+            isRecovering = false
+        }
+    }
+
+    private fun retryCurrentChannel() {
+        isRecovering = false
+        val index = _currentIndex.value ?: return
+        setIndexAndPlay(index)
+    }
+
+    private fun showErrorState() {
+        _errorMessage.value = R.string.error_channel_failed
     }
 
     fun toggleOverlay() {

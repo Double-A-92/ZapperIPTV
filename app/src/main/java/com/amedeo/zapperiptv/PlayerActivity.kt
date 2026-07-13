@@ -286,10 +286,10 @@ class PlayerActivity : AppCompatActivity() {
 
         viewModel.errorMessage.observe(this) { msgId ->
             if (msgId != null) {
-                binding.errorPersistent.setText(msgId)
-                binding.errorPersistent.isVisible = true
+                binding.errorText.setText(msgId)
+                binding.errorContainer.isVisible = true
             } else {
-                binding.errorPersistent.isVisible = false
+                binding.errorContainer.isVisible = false
             }
         }
 

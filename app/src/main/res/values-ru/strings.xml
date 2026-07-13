@@ -24,6 +24,7 @@
     <string name="epg_indicator">EPG</string>
     <string name="error_invalid_url">Неверный URL</string>
     <string name="error_empty_name">Имя не может быть пустым</string>
+    <string name="error_channel_failed">Не удалось загрузить этот канал.</string>
     <string name="error_all_channels_failed">Не удалось воспроизвести ни один канал.</string>
     <string name="error_unknown">Неизвестная ошибка</string>
     <string name="channel_unknown">Неизвестный канал</string>

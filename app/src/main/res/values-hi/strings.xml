@@ -24,6 +24,7 @@
     <string name="epg_indicator">EPG</string>
     <string name="error_invalid_url">अमान्य URL</string>
     <string name="error_empty_name">नाम खाली नहीं हो सकता</string>
+    <string name="error_channel_failed">यह चैनल लोड नहीं हो सका।</string>
     <string name="error_all_channels_failed">सभी चैनल चलाने में विफल रहे।</string>
     <string name="error_unknown">अज्ञात त्रुटि</string>
     <string name="channel_unknown">अज्ञात चैनल</string>

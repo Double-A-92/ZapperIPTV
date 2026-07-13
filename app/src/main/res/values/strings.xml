@@ -24,6 +24,7 @@
     <string name="epg_indicator">EPG</string>
     <string name="error_invalid_url">Invalid URL</string>
     <string name="error_empty_name">Name cannot be empty</string>
+    <string name="error_channel_failed">This channel couldn\'t be loaded.</string>
     <string name="error_all_channels_failed">All channels failed to play.</string>
     <string name="error_unknown">Unknown Error</string>
     <string name="channel_unknown">Unknown Channel</string>
