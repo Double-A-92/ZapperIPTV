@@ -35,9 +35,45 @@ class ChannelListAdapter(
     private val sourceColorMap = mutableMapOf<String, Int>()
     private var favoriteChecker: (Channel) -> Boolean = { false }
 
+    // How many channel rows fit on screen. 0 until measured by the activity.
+    private var visibleCapacity: Int = 0
+
+    // Whether infinite looping is currently active. Assumed on until measured so
+    // the list always renders; the activity disables it for short lists.
+    private var looping: Boolean = true
+
     fun setFavoriteChecker(checker: (Channel) -> Boolean) {
         favoriteChecker = checker
         notifyDataSetChanged()
+    }
+
+    /**
+     * Reports how many item rows fit in the viewport. When the real channel
+     * list is taller than this, looping is enabled so items can scroll past
+     * the end instead of being repeated on a single screen.
+     */
+    fun setVisibleCapacity(capacity: Int) {
+        visibleCapacity = capacity
+        syncLoopState()
+    }
+
+    fun isLooping(): Boolean = looping
+
+    // Looping is active only when enabled and there is more than one channel.
+    private fun shouldLoop(): Boolean = looping && currentList.size > 1
+
+    private fun computeLooping(): Boolean {
+        val size = currentList.size
+        return size > 1 && (visibleCapacity <= 0 || size > visibleCapacity)
+    }
+
+    // Returns true when the looping decision changed (and the list was refreshed).
+    private fun syncLoopState(): Boolean {
+        val shouldLoop = computeLooping()
+        if (shouldLoop == looping) return false
+        looping = shouldLoop
+        notifyDataSetChanged()
+        return true
     }
 
     override fun onCreateViewHolder(
@@ -52,19 +88,14 @@ class ChannelListAdapter(
         holder: ChannelViewHolder,
         position: Int,
     ) {
-        val size = currentList.size
-        if (size == 0) return
-
-        // Map the virtual position to the actual channel index
-        val actualPosition = position % size
-        val channel = getItem(actualPosition)
-        holder.bind(channel)
+        if (currentList.isEmpty()) return
+        holder.bind(getItem(getActualPosition(position)))
     }
 
     override fun getItemCount(): Int {
-        val size = currentList.size
-        // Only loop if we have more than one channel
-        return if (size > 1) VIRTUAL_INFINITY else size
+        // Loop only when the list overflows the viewport; otherwise show it
+        // once so items are never repeated.
+        return if (shouldLoop()) VIRTUAL_INFINITY else currentList.size
     }
 
     /**
@@ -80,9 +111,9 @@ class ChannelListAdapter(
      * that aligns perfectly with the desired channel index.
      */
     fun getStartOffset(actualIndex: Int): Int {
-        val size = currentList.size
-        if (size <= 1) return actualIndex
+        if (!shouldLoop()) return actualIndex
 
+        val size = currentList.size
         val half = VIRTUAL_INFINITY / 2
         // Ensure the offset is a perfect multiple of the list size
         val offset = half - (half % size)
@@ -94,8 +125,11 @@ class ChannelListAdapter(
         currentList: List<Channel>,
     ) {
         super.onCurrentListChanged(previousList, currentList)
-        // Refresh the virtual list to ensure modulo calculations are updated
-        notifyDataSetChanged()
+        // Re-evaluate looping for the new size, refreshing only if the
+        // decision didn't already flip (and thus already notify).
+        if (!syncLoopState()) {
+            notifyDataSetChanged()
+        }
     }
 
     override fun onViewRecycled(holder: ChannelViewHolder) {

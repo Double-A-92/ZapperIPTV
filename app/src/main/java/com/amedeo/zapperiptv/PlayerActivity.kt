@@ -196,6 +196,11 @@ class PlayerActivity : AppCompatActivity() {
                     }
                 },
             )
+
+            // Recompute the visible row capacity whenever the layout changes
+            // (initial layout, list load, orientation/resize) so looping can be
+            // disabled when the channel list is short enough to fit on screen.
+            addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ -> updateChannelLoopState() }
         }
 
         binding.playlistNavPrev.setOnClickListener {
@@ -209,6 +214,30 @@ class PlayerActivity : AppCompatActivity() {
                 scrollToTargetOnNextList = true
                 viewModel.cyclePlaylist(1)
             }
+        }
+    }
+
+    /**
+     * Measures how many channel rows fit in the viewport and tells the adapter,
+     * so looping is enabled only when the list overflows the screen.
+     */
+    private fun updateChannelLoopState() {
+        val recycler = binding.channelRecyclerView
+        val rvHeight = recycler.height
+        if (rvHeight <= 0) return
+        val child = recycler.getChildAt(0) ?: return
+        val itemHeight = child.height
+        if (itemHeight <= 0) return
+        // layout_marginTop excludes the title bar; clipToPadding=false lets items
+        // render into the padding, so the full height is usable. Capacity is the
+        // number of rows that fit; we loop only when the list is taller.
+        val capacity = rvHeight / itemHeight
+        val wasLooping = channelListAdapter.isLooping()
+        channelListAdapter.setVisibleCapacity(capacity)
+        // If the list just collapsed (loop disabled), re-focus the intended item
+        // so we don't land on a wrong/out-of-range position.
+        if (wasLooping && !channelListAdapter.isLooping()) {
+            focusListAtActualIndex(lastFocusActualIndex)
         }
     }
 
@@ -367,7 +396,10 @@ class PlayerActivity : AppCompatActivity() {
         focusListAtActualIndex(safeIdx)
     }
 
+    private var lastFocusActualIndex: Int = 0
+
     private fun focusListAtActualIndex(actualIndex: Int) {
+        lastFocusActualIndex = actualIndex
         val size = channelListAdapter.currentList.size
         if (size == 0) {
             binding.channelRecyclerView.requestFocus()
