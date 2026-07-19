@@ -2,7 +2,7 @@
 <resources>
     <color name="background_primary">#FF0A0A0A</color>
     <color name="background_secondary">#FF1A1A1A</color>
-    <color name="background_overlay">#CC000000</color>
+    <color name="background_overlay">#DD000000</color>
     <color name="text_primary">#FFFFFFFF</color>
     <color name="text_secondary">#FFB0B0B0</color>
     <color name="accent_cyan">#FF00E5FF</color>
