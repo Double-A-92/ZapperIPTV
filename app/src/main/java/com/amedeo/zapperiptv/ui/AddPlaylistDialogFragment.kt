@@ -4,10 +4,12 @@ import android.app.Dialog
 import android.content.Intent
 import android.graphics.Color
 import android.os.Bundle
+import android.text.InputFilter
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.Window
+import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.graphics.drawable.toDrawable
@@ -108,6 +110,10 @@ class AddPlaylistDialogFragment : DialogFragment() {
         if (initialEpgUrl != null) binding.inputEpgUrl.setText(initialEpgUrl)
         if (initialId != null) binding.dialogTitle.setText(R.string.edit_playlist)
 
+        setupNoNewlines(binding.inputName)
+        setupNoNewlines(binding.inputUrl)
+        setupNoNewlines(binding.inputEpgUrl)
+
         binding.btnBrowse.setOnClickListener {
             filePickerLauncher.launch(arrayOf("*/*"))
         }
@@ -151,6 +157,14 @@ class AddPlaylistDialogFragment : DialogFragment() {
             }
             dismiss()
         }
+    }
+
+    private fun setupNoNewlines(editText: EditText) {
+        editText.filters =
+            editText.filters +
+            InputFilter { source, _, _, _, _, _ ->
+                source?.filter { it != '\n' && it != '\r' } ?: ""
+            }
     }
 
     private fun isValid(url: String): Boolean {

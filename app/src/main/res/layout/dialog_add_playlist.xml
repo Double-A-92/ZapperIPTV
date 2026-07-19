@@ -39,6 +39,7 @@
         android:padding="14dp"
         android:background="@color/background_primary"
         android:maxLines="1"
+        android:inputType="textPersonName"
         android:imeOptions="actionNext"
         android:nextFocusDown="@+id/input_url"
         android:layout_marginBottom="12dp" />
