@@ -148,9 +148,14 @@ class MainViewModel(
         }
     }
 
-    fun buildTabs(): List<String?> =
-        listOf<String?>(null) + (_playlists.value ?: emptyList()).map { it.id } +
-            listOf(FAVORITES_TAB_ID)
+    fun buildTabs(): List<String?> {
+        val playlistIds = (_playlists.value ?: emptyList()).map { it.id }
+        return if (playlistIds.size > 1) {
+            listOf<String?>(null) + playlistIds + listOf(FAVORITES_TAB_ID)
+        } else {
+            playlistIds + listOf(FAVORITES_TAB_ID)
+        }
+    }
 
     fun cyclePlaylist(direction: Int) {
         val tabs = buildTabs()
@@ -238,10 +243,25 @@ class MainViewModel(
     private fun validateSelectedPlaylist() {
         val currentSelectedId = _selectedPlaylistId.value
         val playlistIds = _playlists.value.orEmpty().map { it.id }
-        if (currentSelectedId != null && !playlistIds.contains(currentSelectedId)) {
-            _selectedPlaylistId.value = null
-            preferencesManager.saveLastSelectedPlaylist(null)
-            preferencesManager.removePlaylistCursorsForPlaylist(currentSelectedId)
+        when {
+            currentSelectedId == null && playlistIds.size == 1 -> {
+                val singleId = playlistIds.first()
+                _selectedPlaylistId.value = singleId
+                preferencesManager.saveLastSelectedPlaylist(singleId)
+                preferencesManager.removePlaylistCursorsForPlaylist(PreferencesManager.ALL_TAB_KEY)
+            }
+            currentSelectedId != null && !playlistIds.contains(currentSelectedId) -> {
+                if (playlistIds.size == 1) {
+                    val singleId = playlistIds.first()
+                    _selectedPlaylistId.value = singleId
+                    preferencesManager.saveLastSelectedPlaylist(singleId)
+                    preferencesManager.removePlaylistCursorsForPlaylist(currentSelectedId)
+                } else {
+                    _selectedPlaylistId.value = null
+                    preferencesManager.saveLastSelectedPlaylist(null)
+                    preferencesManager.removePlaylistCursorsForPlaylist(currentSelectedId)
+                }
+            }
         }
     }
 
