@@ -309,21 +309,37 @@ class MainViewModel(
     }
 
     fun channelUp() {
-        val list = _channels.value ?: return
-        if (list.isEmpty()) return
+        val filtered = filteredChannels.value ?: emptyList()
+        if (filtered.isEmpty()) return
         cancelErrorRecovery()
-        val current = _currentIndex.value ?: 0
-        val newIndex = if (current < list.size - 1) current + 1 else 0
-        setIndexDebounced(newIndex)
+        val current = _currentChannel.value
+        val currentFilteredIdx =
+            if (current != null) {
+                filtered
+                    .indexOfFirst { it.streamUrl == current.streamUrl && it.sourceId == current.sourceId }
+                    .coerceAtLeast(0)
+            } else {
+                -1
+            }
+        val newFilteredIdx = if (currentFilteredIdx < 0) 0 else (currentFilteredIdx + 1) % filtered.size
+        setFilteredIndexDebounced(newFilteredIdx)
     }
 
     fun channelDown() {
-        val list = _channels.value ?: return
-        if (list.isEmpty()) return
+        val filtered = filteredChannels.value ?: emptyList()
+        if (filtered.isEmpty()) return
         cancelErrorRecovery()
-        val current = _currentIndex.value ?: 0
-        val newIndex = if (current > 0) current - 1 else list.size - 1
-        setIndexDebounced(newIndex)
+        val current = _currentChannel.value
+        val currentFilteredIdx =
+            if (current != null) {
+                filtered
+                    .indexOfFirst { it.streamUrl == current.streamUrl && it.sourceId == current.sourceId }
+                    .coerceAtLeast(0)
+            } else {
+                -1
+            }
+        val newFilteredIdx = if (currentFilteredIdx > 0) currentFilteredIdx - 1 else filtered.size - 1
+        setFilteredIndexDebounced(newFilteredIdx)
     }
 
     fun selectChannel(index: Int) {
@@ -331,6 +347,25 @@ class MainViewModel(
         if (list.isEmpty() || index < 0 || index >= list.size) return
         cancelErrorRecovery()
         setIndexAndPlay(index)
+    }
+
+    private fun setFilteredIndexDebounced(filteredIndex: Int) {
+        val filtered = filteredChannels.value ?: return
+        if (filteredIndex !in filtered.indices) return
+        val channel = filtered[filteredIndex]
+        val globalIdx =
+            (_channels.value ?: emptyList()).indexOfFirst {
+                it.streamUrl == channel.streamUrl &&
+                    it.sourceId == channel.sourceId
+            }
+        if (globalIdx >= 0) {
+            _currentIndex.value = globalIdx
+            _currentChannel.value = channel
+            updateCurrentProgramme()
+            showOverlayTemporarily()
+            handler.removeCallbacks(playChannelRunnable)
+            handler.postDelayed(playChannelRunnable, DEBOUNCE_DELAY_MS)
+        }
     }
 
     private fun setIndexDebounced(index: Int) {
